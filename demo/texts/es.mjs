@@ -1,0 +1,50 @@
+// Las frases y botones de la demo en español, y las palabras que la demo reconoce.
+// A translation keeps every key, the functions' parameters, and the times as HH:MM.
+const SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+
+export default {
+    locale: 'es-ES',
+    items: (list) => list.join(' y '),
+    names: { 'Linen shirt': 'una camisa de lino', 'Canvas tote bag': 'una bolsa de tela', 'Wool coat': 'un abrigo de lana' },
+    returnNames: { 'Linen shirt': 'la camisa de lino', 'Canvas tote bag': 'la bolsa de tela' },
+    shipped: (n, placed, shipped, items) => `Su pedido ${n} se realizó el ${placed} y se envió el ${shipped}. Contiene ${items}.`,
+    preparing: (n, placed, items) => `Su pedido ${n} se realizó el ${placed}. Se está preparando y todavía no se ha enviado. Contiene ${items}.`,
+    noMatch: 'Ningún pedido coincide con este número y esta dirección de correo electrónico.',
+    askEmail: (n) => `Para ayudarle, ¿podría indicarme la dirección de correo electrónico con la que se hizo el pedido ${n}?`,
+    askOrder: 'Por supuesto. ¿Cuál es su número de pedido y la dirección de correo electrónico con la que se hizo?',
+    lookUp: 'Puedo buscarlo. ¿Cuál es su número de pedido y la dirección de correo electrónico con la que se hizo?',
+    notShipped: (n) => `El pedido ${n} todavía no se puede devolver: solo se puede devolver un pedido enviado.`,
+    confirmReturn: 'Confirme su devolución con el botón de abajo.',
+    returnQ: (item, n, reason) => `¿Abrir una devolución de ${item} del pedido ${n}? Motivo: ${reason}`,
+    openReturn: 'Abrir la devolución',
+    keepOrder: 'Conservar mi pedido',
+    returnOpen: (n, email) => `Su devolución del pedido ${n} está abierta. Le escribiremos a ${email} para explicarle cómo devolvernos los artículos.`,
+    kept: 'De acuerdo, su pedido se queda como está. ¿Algo más?',
+    offTopic: 'Solo puedo ayudarle con pedidos y devoluciones. Para cualquier otra cosa, escriba a support@example.com.',
+    defaultReason: 'no le queda bien',
+    whichDay: 'Puedo reservarle una cita de 30 minutos, de lunes a viernes, de 9:00 a 17:00. ¿Qué día le viene bien?',
+    offer: (day, times) => `${day} está bien. ¿Prefiere ${times.slice(0, -1).join(', ')} o ${times.at(-1)}? Indíqueme también su nombre y su dirección de correo electrónico.`,
+    notFree: (t) => `${t} no es una de las horas libres. Elija entre ${SLOTS.join(', ')}.`,
+    needName: (t) => `A las ${t}, entonces. Necesito su nombre y su dirección de correo electrónico para reservar.`,
+    confirmBooking: 'Confirme su cita con el botón de abajo.',
+    bookQ: (when, name, email) => `¿Reservar el ${when} para ${name} (${email})?`,
+    bookIt: 'Reservar',
+    another: 'Otra hora',
+    booked: (when, name) => `Reservado: el ${when}, para ${name}. ¡Hasta entonces!`,
+    otherTime: 'Sin problema. ¿Qué otro día u hora le viene bien?',
+    // "martes, 3 de noviembre a las 10:00".
+    at: 'a las',
+    service: 'Cita, 30 minutos',
+    words: {
+        returning: String.raw`devol|reembols|(enviar|mandar)(lo|la)? de vuelta|\brot[oa]\b|(demasiado|muy) (peque|grande)`,
+        reason: String.raw`(demasiado|muy) (pequeñ[oa]|grande)|me queda (pequeñ|grande)[oa]|\brot[oa]\b|dañad[oa]|talla (equivocada|incorrecta)|cambié de opinión`,
+        order: String.raw`pedido|paquete|envío|entrega|d[oó]nde`,
+        shirt: String.raw`camisa|\blino\b`,
+        bag: String.raw`tote|bolsa|bolso`,
+        afternoon: String.raw`tarde`,
+        // "mañana" also means "morning": not after "la", "esta" or "de".
+        tomorrow: String.raw`(?<!la |esta |de )ma[ñn]ana`,
+        first: String.raw`primer`,
+        days: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+    },
+};

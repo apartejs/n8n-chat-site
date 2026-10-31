@@ -1,0 +1,50 @@
+// Le frasi e i pulsanti della demo in italiano, e le parole che la demo riconosce.
+// A translation keeps every key, the functions' parameters, and the times as HH:MM.
+const SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+
+export default {
+    locale: 'it-IT',
+    items: (list) => list.join(' e '),
+    names: { 'Linen shirt': 'una camicia di lino', 'Canvas tote bag': 'una borsa tote in tela', 'Wool coat': 'un cappotto di lana' },
+    returnNames: { 'Linen shirt': 'la camicia di lino', 'Canvas tote bag': 'la borsa tote in tela' },
+    shipped: (n, placed, shipped, items) => `Il suo ordine ${n} è stato effettuato il ${placed} e spedito il ${shipped}. Contiene ${items}.`,
+    preparing: (n, placed, items) => `Il suo ordine ${n} è stato effettuato il ${placed}. È in preparazione e non è ancora stato spedito. Contiene ${items}.`,
+    noMatch: 'Nessun ordine corrisponde a questo numero e a questo indirizzo e-mail.',
+    askEmail: (n) => `Per aiutarla, può darmi l'indirizzo e-mail con cui è stato effettuato l'ordine ${n}?`,
+    askOrder: "Certo. Qual è il suo numero d'ordine e l'indirizzo e-mail con cui è stato effettuato?",
+    lookUp: "Posso cercarlo. Qual è il suo numero d'ordine e l'indirizzo e-mail con cui è stato effettuato?",
+    notShipped: (n) => `L'ordine ${n} non può ancora essere reso: si può rendere solo un ordine spedito.`,
+    confirmReturn: 'Confermi il reso con il pulsante qui sotto.',
+    returnQ: (item, n, reason) => `Aprire un reso per ${item} dell'ordine ${n}? Motivo: ${reason}`,
+    openReturn: 'Apri il reso',
+    keepOrder: 'Tieni il mio ordine',
+    returnOpen: (n, email) => `Il suo reso per l'ordine ${n} è aperto. Le scriveremo a ${email} per spiegarle come rispedire gli articoli.`,
+    kept: "D'accordo, il suo ordine resta com'è. Altro?",
+    offTopic: 'Posso aiutarla solo con ordini e resi. Per tutto il resto, scriva a support@example.com.',
+    defaultReason: 'non va bene',
+    whichDay: 'Posso prenotarle un appuntamento di 30 minuti, dal lunedì al venerdì, dalle 9:00 alle 17:00. Quale giorno preferisce?',
+    offer: (day, times) => `${day} va bene! Preferisce ${times.slice(0, -1).join(', ')} o ${times.at(-1)}? Mi indichi anche il suo nome e il suo indirizzo e-mail.`,
+    notFree: (t) => `${t} non è uno degli orari liberi. Scelga tra ${SLOTS.join(', ')}.`,
+    needName: (t) => `Allora alle ${t}. Per prenotare mi servono il suo nome e il suo indirizzo e-mail.`,
+    confirmBooking: "Confermi l'appuntamento con il pulsante qui sotto.",
+    bookQ: (when, name, email) => `Prenotare ${when} per ${name} (${email})?`,
+    bookIt: 'Prenota',
+    another: 'Un altro orario',
+    booked: (when, name) => `Prenotato: ${when}, per ${name}. A presto!`,
+    otherTime: 'Nessun problema. Quale altro giorno o orario preferisce?',
+    // "martedì 3 novembre alle 10:00".
+    at: 'alle',
+    service: 'Appuntamento, 30 minuti',
+    words: {
+        returning: String.raw`restitu|\breso\b|\bresi\b|rimbors|rispedi|\brott[oa]\b|troppo (piccol|grand)`,
+        reason: String.raw`troppo (piccol|grand)[aeio]|\brott[oa]\b|danneggiat[oa]|taglia sbagliata|cambiato idea`,
+        order: String.raw`ordine|pacco|consegna|spedizione|\bdov`,
+        shirt: String.raw`camicia|\blino\b`,
+        bag: String.raw`tote|borsa|sacca`,
+        afternoon: String.raw`pomeriggio`,
+        tomorrow: String.raw`\bdomani\b`,
+        first: String.raw`\bprim[oa]\b`,
+        // Stems, so that "martedì" and "martedi" both match.
+        days: ['domenica', 'luned', 'marted', 'mercoled', 'gioved', 'venerd', 'sabato'],
+    },
+};

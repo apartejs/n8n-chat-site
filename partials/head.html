@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="{{lang}}" data-widget="{{widget.js}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{page.title}}</title>
+<meta name="description" content="{{page.description}}">
+<link rel="canonical" href="https://n8n-chat.apartejs.dev/{{lang}}/{{page.path}}">
+{{alternates}}
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{widget.css}}">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body class="site">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <a class="logo" href="/{{lang}}/"><span class="logo-mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M4 5h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 4v-4H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span>
+    <span>aparté chat <small>for n8n</small></span></a>
+  <nav aria-label="Sections">
+    <a href="/{{lang}}/#demo">{{nav.demo}}</a>
+    <a href="/{{lang}}/#cards">{{nav.cards}}</a>
+    <a href="/{{lang}}/#yours">{{nav.yours}}</a>
+    <a href="/{{lang}}/#workflows">{{nav.workflows}}</a>
+    <a href="/{{lang}}/#install">{{nav.install}}</a>
+    <a href="https://github.com/apartejs/n8n-chat">GitHub</a>
+    <select class="site-lang" aria-label="{{nav.language}}" id="site-lang">{{languages}}</select>
+  </nav>
+</header>
+

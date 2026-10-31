@@ -1,0 +1,52 @@
+// 한국어 데모의 문장과 버튼, 그리고 데모가 알아듣는 단어.
+// A translation keeps every key, the functions' parameters, and the times as HH:MM.
+const SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+
+// The date has no word before the time: "11월 3일 화요일 10:00". Collapse the double space.
+const tidy = (s) => s.replace(/ {2,}/g, ' ');
+
+export default {
+    locale: 'ko-KR',
+    items: (list) => list.join(' 및 '),
+    names: { 'Linen shirt': '리넨 셔츠 1벌', 'Canvas tote bag': '캔버스 토트백 1개', 'Wool coat': '울 코트 1벌' },
+    returnNames: { 'Linen shirt': '리넨 셔츠', 'Canvas tote bag': '캔버스 토트백' },
+    shipped: (n, placed, shipped, items) => `고객님의 ${n}번 주문은 ${placed}에 접수되어 ${shipped}에 발송되었습니다. 주문 내역은 ${items}입니다.`,
+    preparing: (n, placed, items) => `고객님의 ${n}번 주문은 ${placed}에 접수되었습니다. 현재 준비 중이며 아직 발송되지 않았습니다. 주문 내역은 ${items}입니다.`,
+    noMatch: '이 번호와 이메일 주소에 해당하는 주문이 없습니다.',
+    askEmail: (n) => `확인해 드리기 위해, ${n}번 주문에 사용하신 이메일 주소를 알려 주시겠어요?`,
+    askOrder: '네, 알겠습니다. 주문 번호와 주문 시 사용하신 이메일 주소를 알려 주세요.',
+    lookUp: '조회해 드리겠습니다. 주문 번호와 주문 시 사용하신 이메일 주소를 알려 주세요.',
+    notShipped: (n) => `${n}번 주문은 아직 반품할 수 없습니다. 발송된 주문만 반품할 수 있습니다.`,
+    confirmReturn: '아래 버튼으로 반품을 확인해 주세요.',
+    returnQ: (item, n, reason) => `${n}번 주문의 ${item} 반품을 접수할까요? 사유: ${reason}`,
+    openReturn: '반품 접수',
+    keepOrder: '주문 유지',
+    returnOpen: (n, email) => `${n}번 주문의 반품이 접수되었습니다. 상품을 보내는 방법을 ${email}(으)로 안내해 드리겠습니다.`,
+    kept: '알겠습니다. 주문은 그대로 유지됩니다. 더 필요하신 것이 있으신가요?',
+    offTopic: '저는 주문과 반품만 도와 드릴 수 있습니다. 그 외 문의는 support@example.com으로 메일을 보내 주세요.',
+    defaultReason: '사이즈가 맞지 않음',
+    whichDay: '월요일부터 금요일까지, 9:00부터 17:00까지 30분 단위로 예약해 드립니다. 어느 요일이 편하신가요?',
+    offer: (day, times) => `${day} 가능합니다! ${times.slice(0, -1).join(', ')}, ${times.at(-1)} 중 언제가 좋으신가요? 성함과 이메일 주소도 알려 주세요.`,
+    notFree: (t) => `${t}은(는) 비어 있는 시간이 아닙니다. ${SLOTS.join(', ')} 중에서 선택해 주세요.`,
+    needName: (t) => `${t}로 하겠습니다. 예약하려면 성함과 이메일 주소가 필요합니다.`,
+    confirmBooking: '아래 버튼으로 예약을 확인해 주세요.',
+    bookQ: (when, name, email) => `${tidy(when)}에 ${name} 님(${email}) 이름으로 예약할까요?`,
+    bookIt: '예약하기',
+    another: '다른 시간',
+    booked: (when, name) => `예약되었습니다: ${tidy(when)}, ${name} 님. 그때 뵙겠습니다!`,
+    otherTime: '괜찮습니다. 다른 어느 날이나 시간이 좋으신가요?',
+    // No word between the date and the time.
+    at: '',
+    service: '예약, 30분',
+    words: {
+        returning: String.raw`반품|환불|반송|돌려보|망가|고장|너무 (작|크|커)`,
+        reason: String.raw`너무 (작|크|커)[가-힣]*|망가[가-힣]*|고장[가-힣]*|파손[가-힣]*|마음이 바뀌[가-힣]*`,
+        order: String.raw`주문|택배|배송|어디`,
+        shirt: String.raw`셔츠|리넨|린넨`,
+        bag: String.raw`토트|가방|에코백`,
+        afternoon: String.raw`오후`,
+        tomorrow: String.raw`내일`,
+        first: String.raw`첫|처음`,
+        days: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+    },
+};

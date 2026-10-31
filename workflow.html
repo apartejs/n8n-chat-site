@@ -1,0 +1,53 @@
+{{@head}}
+<main id="main" class="wf-page" data-workflow="{{wf.id}}" data-json="/workflows/{{wf.file}}.json">
+  <section class="wrap wf-hero">
+    <p><a class="back" href="/{{lang}}/#workflows">← {{wfp.back}}</a></p>
+    <h1 class="wf-title">{{wf.title}}</h1>
+    <p class="lead">{{wf.text}}</p>
+    <p class="tags">{{wf.tags}}</p>
+    <div class="ctas">
+      <a class="aparte-btn aparte-btn--solid aparte-btn--primary aparte-btn--lg" href="/workflows/{{wf.file}}.json" download>{{wf.download}}</a>
+      <a class="aparte-btn aparte-btn--outline aparte-btn--primary aparte-btn--lg" href="#live" data-if-live>{{wfp.live}}</a>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap wf-grid">
+      <div class="wf-preview">
+        <h2 class="h3">{{wfp.preview}}</h2>
+        <p class="muted small">{{wfp.preview.hint}}</p>
+        <div class="preview-frame" id="preview"></div>
+      </div>
+      <p class="wf-nolive muted" data-if-nolive>{{wfp.documents.nolive}}</p>
+      <div class="wf-live" id="live" data-if-live>
+        <h2 class="h3">{{wfp.live}}</h2>
+        <p class="muted small">{{wfp.live.hint}}</p>
+        <div class="demo demo--page" id="demo-chat"></div>
+        <div class="try" id="try"><span>{{demo.try}}</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap split">
+      <div>
+        <h2>{{wfp.requirements}}</h2>
+        <ul class="steps">{{wf.req}}</ul>
+      </div>
+      <div>
+        <h2>{{wfp.setup}}</h2>
+        <ol class="steps">{{wf.steps}}</ol>
+        <pre class="code" data-lang="html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@{{widget}}/dist/style.css"&gt;
+&lt;script type="module"&gt;
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@{{widget}}/dist/cdn/n8n-chat.js';
+  createChat({ webhookUrl: 'YOUR_PRODUCTION_URL'{{wf.options}} });
+&lt;/script&gt;</pre>
+      </div>
+    </div>
+  </section>
+</main>
+{{@foot}}
+<script type="application/json" id="i18n">{{json}}</script>
+<script type="module" src="/workflow.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+// 演示中的中文语句和按钮，以及演示能识别的词。
+// A translation keeps every key, the functions' parameters, and the times as HH:MM.
+const SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+
+// The date has no word before the time: "11月3日星期二 10:00". Collapse the double space.
+const tidy = (s) => s.replace(/ {2,}/g, ' ');
+
+export default {
+    locale: 'zh-CN',
+    items: (list) => list.join('和'),
+    names: { 'Linen shirt': '一件亚麻衬衫', 'Canvas tote bag': '一个帆布托特包', 'Wool coat': '一件羊毛大衣' },
+    returnNames: { 'Linen shirt': '亚麻衬衫', 'Canvas tote bag': '帆布托特包' },
+    shipped: (n, placed, shipped, items) => `您的订单 ${n} 于 ${placed} 下单，并于 ${shipped} 发货。订单包含${items}。`,
+    preparing: (n, placed, items) => `您的订单 ${n} 于 ${placed} 下单。目前正在备货，尚未发货。订单包含${items}。`,
+    noMatch: '没有与该订单号和邮箱地址相符的订单。',
+    askEmail: (n) => `为了帮您查询，请告诉我订单 ${n} 使用的邮箱地址。`,
+    askOrder: '好的。请告诉我您的订单号，以及下单时使用的邮箱地址。',
+    lookUp: '我可以帮您查询。请告诉我您的订单号，以及下单时使用的邮箱地址。',
+    notShipped: (n) => `订单 ${n} 暂时还不能退货：只有已发货的订单才能退货。`,
+    confirmReturn: '请点击下方按钮确认退货。',
+    returnQ: (item, n, reason) => `为订单 ${n} 中的${item}办理退货吗？原因：${reason}`,
+    openReturn: '办理退货',
+    keepOrder: '保留订单',
+    returnOpen: (n, email) => `订单 ${n} 的退货已办理。我们会发邮件到 ${email}，告诉您如何寄回商品。`,
+    kept: '好的，您的订单保持不变。还有其他需要帮忙的吗？',
+    offTopic: '我只能协助处理订单和退货。其他问题请发邮件到 support@example.com。',
+    defaultReason: '尺码不合适',
+    whichDay: '我可以为您预约 30 分钟的时段，周一至周五，9:00 至 17:00。请问您哪天方便？',
+    offer: (day, times) => `${day}可以！您更倾向于 ${times.slice(0, -1).join('、')} 还是 ${times.at(-1)}？另外请告诉我您的姓名和邮箱地址。`,
+    notFree: (t) => `${t} 不在空闲时段内。请从 ${SLOTS.join('、')} 中选择。`,
+    needName: (t) => `好的，${t}。预约需要您的姓名和邮箱地址。`,
+    confirmBooking: '请点击下方按钮确认预约。',
+    bookQ: (when, name, email) => `为 ${name}（${email}）预约 ${tidy(when)} 吗？`,
+    bookIt: '预约',
+    another: '换个时间',
+    booked: (when, name) => `已预约：${tidy(when)}，${name}。到时见！`,
+    otherTime: '没问题。请问您其他哪天或几点方便？',
+    // No word between the date and the time.
+    at: '',
+    service: '预约，30 分钟',
+    words: {
+        returning: String.raw`退货|退款|退掉|退回|退换|寄回|坏了|损坏|太(小|大)`,
+        reason: String.raw`太(小|大)了?|坏了|损坏|尺码不(对|合适)|不想要了`,
+        order: String.raw`订单|包裹|快递|物流|发货|在哪`,
+        shirt: String.raw`衬衫|亚麻`,
+        bag: String.raw`托特|帆布包|帆布袋|手提包|布袋`,
+        afternoon: String.raw`下午`,
+        tomorrow: String.raw`明天`,
+        first: String.raw`第一|最早`,
+        days: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
+    },
+};

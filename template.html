@@ -1,0 +1,252 @@
+{{@head}}
+<main id="main">
+  <section id="demo" class="hero wrap">
+    <div class="pitch">
+      <p class="eyebrow"><span class="dot"></span>{{hero.eyebrow}}</p>
+      <h1>{{hero.title}}</h1>
+      <p class="lead">{{hero.lead}}</p>
+      <div class="ctas">
+        <a class="aparte-btn aparte-btn--solid aparte-btn--primary aparte-btn--lg" href="#install">{{hero.install}}</a>
+        <a class="aparte-btn aparte-btn--outline aparte-btn--primary aparte-btn--lg" href="#yours">{{hero.yours}}</a>
+      </div>
+      <dl class="proof">
+        <div><dt>{{proof.weight}}</dt><dd>{{proof.weight.label}}</dd></div>
+        <div><dt>{{proof.languages}}</dt><dd>{{proof.languages.label}}</dd></div>
+        <div><dt>{{proof.a11y}}</dt><dd>{{proof.a11y.label}}</dd></div>
+        <div><dt>{{proof.license}}</dt><dd>{{proof.license.label}}</dd></div>
+      </dl>
+    </div>
+    <div class="stage">
+      <div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.workflow}}" id="workflow-tabs">
+        <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-workflow="shop" aria-controls="demo-chat">{{demo.tab.shop}}</button>
+        <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-workflow="booking" aria-controls="demo-chat">{{demo.tab.booking}}</button>
+        <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-workflow="yours" aria-controls="demo-chat" hidden>{{demo.tab.yours}}</button>
+      </div>
+      <div id="demo-chat" class="demo" role="tabpanel"></div>
+      <div id="floating-note" class="floating-note" hidden><div><strong>{{demo.floating.title}}</strong>{{demo.floating.text}}</div></div>
+      <div class="controls">
+        <label>{{demo.language}} <select id="chat-lang"></select></label>
+        <span class="swatches" role="group" aria-label="{{demo.colour}}" id="colours">{{demo.colour}}</span>
+        <div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.where}}" id="mode-tabs">
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-mode="embedded">{{demo.embedded}}</button>
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-mode="window">{{demo.floating}}</button>
+        </div>
+      </div>
+      <div class="try" id="try"><span>{{demo.try}}</span></div>
+      <p class="made">{{demo.made}}</p>
+    </div>
+  </section>
+
+  <section id="code" class="band">
+    <div class="wrap split">
+      <div>
+        <h2>{{code.title}}</h2>
+        <p class="sub">{{code.sub}}</p>
+      </div>
+      <pre class="code" data-lang="js" id="settings-code"></pre>
+    </div>
+  </section>
+
+  <section id="cards" class="band">
+    <div class="wrap">
+      <h2>{{cards.title}}</h2>
+      <div class="split">
+        <div class="prose">
+          <p>{{cards.lead}}</p>
+          <p>{{cards.how}}</p>
+          <p class="muted">{{cards.list}}</p>
+          <p class="label">{{cards.own.workflow}}</p>
+          <pre class="code" data-lang="md">Order 1001 left our warehouse two days ago.
+
+```card-order
+{ "number": "1001", "status": "shipped", "currency": "EUR",
+  "line_items": [
+    { "name": "Linen shirt", "quantity": 1, "total": "49.00" },
+    { "name": "Canvas tote bag", "quantity": 1, "total": "19.00" }
+  ],
+  "total": "68.00" }
+```</pre>
+        </div>
+        <div class="convo-side">
+          <p class="label">{{cards.own.result}}</p>
+          <div class="convo" id="convo-order" aria-label="{{cards.example.label}}"></div>
+        </div>
+      </div>
+
+      <h3 class="own-title">{{cards.own.title}}</h3>
+      <p class="sub">{{cards.own.lead}}</p>
+      <div class="own">
+        <pre class="code" data-lang="js">import { createChat } from '@aparte/n8n-chat';
+import { defineCard, el } from '@aparte/plugin-cards';
+
+const ticket = defineCard({
+  name: 'ticket',
+  variants: ['card'],
+  styles: `.aparte-ticket-card .t-id { font-weight: 700 }`,
+  icon: '&lt;svg viewBox="0 0 24 24"&gt;…&lt;/svg&gt;',
+  normalize: (raw) =&gt; (raw?.id ? raw : null),
+  render: (t) =&gt; [
+    el('div', { class: 't-id', text: `Ticket ${t.id}` }),
+    el('p', { text: t.subject }),
+    el('small', { text: t.status }),
+  ],
+  skeleton: () =&gt; [],
+  label: (t) =&gt; `Ticket ${t?.id ?? ''}`,
+  fallback: (t) =&gt; `Ticket ${t.id}: ${t.subject}`,
+});
+
+createChat({
+  webhookUrl: '…',
+  setup: (config) =&gt; ticket.setup({ config }),
+});</pre>
+        <div class="own-side">
+          <p class="label">{{cards.own.workflow}}</p>
+          <pre class="code" data-lang="md">Your ticket is open.
+
+```card-ticket
+{ "id": "T-42", "subject": "Refund for order 1001",
+  "status": "Waiting for us" }
+```</pre>
+          <p class="label">{{cards.own.result}}</p>
+          <div class="convo convo--short" id="convo-ticket" aria-label="{{cards.example.label}}"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="yours" class="band">
+    <div class="wrap narrow">
+      <h2>{{yours.title}}</h2>
+      <p class="sub">{{yours.lead}}</p>
+      <form id="yours-form" class="yours" novalidate>
+        <label class="field-label" for="yours-url">{{yours.url}}</label>
+        <div class="yours-row">
+          <input id="yours-url" class="aparte-field" type="url" inputmode="url" autocomplete="url" placeholder="https://your-n8n.example.com/webhook/…/chat" required>
+          <button class="aparte-btn aparte-btn--solid aparte-btn--primary" type="submit">{{yours.connect}}</button>
+        </div>
+        <label class="check"><input type="checkbox" id="yours-stream"> {{yours.stream}}</label>
+        <p class="status" id="yours-status" role="status" aria-live="polite"></p>
+        <p class="muted small">{{yours.need}}</p>
+      </form>
+    </div>
+  </section>
+
+  <section id="workflows" class="band">
+    <div class="wrap">
+      <h2>{{wf.title}}</h2>
+      <p class="sub">{{wf.sub}}</p>
+      <div class="grid">
+        <article class="aparte-card">
+          <div class="aparte-card__header">{{wf.shop.title}}</div>
+          <div class="aparte-card__body">
+            <p>{{wf.shop.text}}</p>
+            <p class="tags"><span class="aparte-tag aparte-tag--sm">{{wf.tag.order}}</span><span class="aparte-tag aparte-tag--sm">{{wf.tag.buttons}}</span><span class="aparte-tag aparte-tag--sm">{{wf.tag.photo}}</span></p>
+          </div>
+          <div class="aparte-card__footer">
+            <a class="aparte-btn aparte-btn--solid aparte-btn--primary aparte-btn--sm" href="/workflows/shop-returns.json" download>{{wf.download}}</a>
+            <a class="aparte-btn aparte-btn--ghost aparte-btn--primary aparte-btn--sm" href="/{{lang}}/workflows/shop/">{{wfp.details}}</a>
+            <a class="aparte-btn aparte-btn--ghost aparte-btn--primary aparte-btn--sm" href="#demo" data-open="shop">{{wf.try}}</a>
+          </div>
+        </article>
+        <article class="aparte-card">
+          <div class="aparte-card__header">{{wf.booking.title}}</div>
+          <div class="aparte-card__body">
+            <p>{{wf.booking.text}}</p>
+            <p class="tags"><span class="aparte-tag aparte-tag--sm">{{wf.tag.booking}}</span><span class="aparte-tag aparte-tag--sm">{{wf.tag.buttons}}</span><span class="aparte-tag aparte-tag--sm">{{wf.tag.table}}</span></p>
+          </div>
+          <div class="aparte-card__footer">
+            <a class="aparte-btn aparte-btn--solid aparte-btn--primary aparte-btn--sm" href="/workflows/booking.json" download>{{wf.download}}</a>
+            <a class="aparte-btn aparte-btn--ghost aparte-btn--primary aparte-btn--sm" href="/{{lang}}/workflows/booking/">{{wfp.details}}</a>
+            <a class="aparte-btn aparte-btn--ghost aparte-btn--primary aparte-btn--sm" href="#demo" data-open="booking">{{wf.try}}</a>
+          </div>
+        </article>
+        <article class="aparte-card">
+          <div class="aparte-card__header">{{wf.docs.title}}</div>
+          <div class="aparte-card__body">
+            <p>{{wf.docs.text}}</p>
+            <p class="tags"><span class="aparte-tag aparte-tag--sm">{{wf.tag.file}}</span><span class="aparte-tag aparte-tag--sm">{{wf.tag.memory}}</span></p>
+          </div>
+          <div class="aparte-card__footer">
+            <a class="aparte-btn aparte-btn--solid aparte-btn--primary aparte-btn--sm" href="/workflows/document-qa.json" download>{{wf.download}}</a>
+            <a class="aparte-btn aparte-btn--ghost aparte-btn--primary aparte-btn--sm" href="/{{lang}}/workflows/documents/">{{wfp.details}}</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="aparte" class="band band-ink">
+    <div class="wrap">
+      <h2>{{aparte.title}}</h2>
+      <p class="sub">{{aparte.lead}}</p>
+      <div class="split">
+        <ul class="eco">
+          <li><strong>{{aparte.markdown}}</strong>{{aparte.markdown.text}}</li>
+          <li><strong>{{aparte.cards}}</strong>{{aparte.cards.text}}</li>
+          <li><strong>{{aparte.buttons}}</strong>{{aparte.buttons.text}}</li>
+          <li><strong>{{aparte.maths}}</strong>{{aparte.maths.text}}</li>
+          <li><strong>{{aparte.diagrams}}</strong>{{aparte.diagrams.text}}</li>
+          <li><strong>{{aparte.charts}}</strong>{{aparte.charts.text}}</li>
+        </ul>
+        <pre class="code" data-lang="js">import { createChat } from '@aparte/n8n-chat';
+import { setupKatex } from '@aparte/plugin-katex';
+import { setupMermaid } from '@aparte/plugin-mermaid';
+
+createChat({
+  webhookUrl: '…',
+  setup: (config) =&gt; {
+    const stops = [setupKatex({}, config), setupMermaid({}, config)];
+    return () =&gt; stops.forEach((stop) =&gt; stop());
+  },
+});</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="why" class="band">
+    <div class="wrap">
+      <h2>{{why.title}}</h2>
+      <p class="sub">{{why.sub}}</p>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th scope="col"><span class="visually-hidden">{{why.feature}}</span></th><th scope="col">@n8n/chat</th><th scope="col">aparté chat for n8n</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">{{why.cards}}</th><td>{{why.cards.n8n}}</td><td>{{why.cards.ours}}</td></tr>
+            <tr><th scope="row">{{why.weight}}</th><td>~471 KB</td><td>~143 KB</td></tr>
+            <tr><th scope="row">{{why.languages}}</th><td>{{why.languages.n8n}}</td><td>{{why.languages.ours}}</td></tr>
+            <tr><th scope="row">{{why.a11y}}</th><td>{{why.a11y.n8n}}</td><td>{{why.a11y.ours}}</td></tr>
+            <tr><th scope="row">{{why.contrast}}</th><td>2.55:1</td><td>4.70:1 (WCAG AA)</td></tr>
+            <tr><th scope="row">{{why.dark}}</th><td>—</td><td>{{why.dark.ours}}</td></tr>
+            <tr><th scope="row">{{why.embedded}}</th><td>"fullscreen"</td><td><code>mode: 'embedded'</code></td></tr>
+            <tr><th scope="row">{{why.drive}}</th><td>—</td><td><code>open</code>, <code>send</code>, <code>reset</code>, <code>setDisabled</code>…</td></tr>
+            <tr><th scope="row">{{why.extend}}</th><td>—</td><td><code>setup(config)</code></td></tr>
+            <tr><th scope="row">{{why.license}}</th><td>Sustainable Use</td><td>MIT</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="band">
+    <div class="wrap narrow">
+      <h2>{{install.title}}</h2>
+      <p class="sub">{{install.sub}}</p>
+      <pre class="code" data-lang="html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@{{widget}}/dist/style.css"&gt;
+&lt;script type="module"&gt;
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@{{widget}}/dist/cdn/n8n-chat.js';
+  createChat({
+    webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',
+    metadata: { page: location.href },
+  });
+&lt;/script&gt;</pre>
+      <p>{{install.npm}}</p>
+    </div>
+  </section>
+</main>
+
+{{@foot}}
+
+<script type="application/json" id="i18n">{{json}}</script>
+<script type="module" src="/site.js"></script>
+</body>
+</html>

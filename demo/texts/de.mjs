@@ -1,0 +1,50 @@
+// Die Sätze und Buttons der Demo auf Deutsch und die Wörter, auf die die Demo reagiert.
+// A translation keeps every key, the functions' parameters, and the times as HH:MM.
+const SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+
+export default {
+    locale: 'de-DE',
+    items: (list) => list.join(' und '),
+    names: { 'Linen shirt': 'ein Leinenhemd', 'Canvas tote bag': 'eine Stofftasche aus Canvas', 'Wool coat': 'einen Wollmantel' },
+    returnNames: { 'Linen shirt': 'das Leinenhemd', 'Canvas tote bag': 'die Stofftasche aus Canvas' },
+    shipped: (n, placed, shipped, items) => `Ihre Bestellung ${n} wurde am ${placed} aufgegeben und am ${shipped} versandt. Sie enthält ${items}.`,
+    preparing: (n, placed, items) => `Ihre Bestellung ${n} wurde am ${placed} aufgegeben. Sie wird gerade vorbereitet und ist noch nicht versandt. Sie enthält ${items}.`,
+    noMatch: 'Keine Bestellung passt zu dieser Nummer und dieser E-Mail-Adresse.',
+    askEmail: (n) => `Um Ihnen zu helfen: Könnten Sie mir die E-Mail-Adresse nennen, mit der Bestellung ${n} aufgegeben wurde?`,
+    askOrder: 'Gern. Wie lautet Ihre Bestellnummer, und mit welcher E-Mail-Adresse wurde sie aufgegeben?',
+    lookUp: 'Ich kann das nachschauen. Wie lautet Ihre Bestellnummer, und mit welcher E-Mail-Adresse wurde sie aufgegeben?',
+    notShipped: (n) => `Bestellung ${n} kann noch nicht zurückgeschickt werden: Nur eine versandte Bestellung kann zurückgeschickt werden.`,
+    confirmReturn: 'Bitte bestätigen Sie Ihre Rücksendung mit dem Button unten.',
+    returnQ: (item, n, reason) => `Eine Rücksendung für ${item} aus Bestellung ${n} eröffnen? Grund: ${reason}`,
+    openReturn: 'Rücksendung eröffnen',
+    keepOrder: 'Bestellung behalten',
+    returnOpen: (n, email) => `Ihre Rücksendung zu Bestellung ${n} ist eröffnet. Wir schreiben Ihnen an ${email}, wie Sie die Artikel zurückschicken.`,
+    kept: 'In Ordnung, Ihre Bestellung bleibt, wie sie ist. Sonst noch etwas?',
+    offTopic: 'Ich kann Ihnen nur bei Bestellungen und Rücksendungen helfen. Für alles andere schreiben Sie bitte an support@example.com.',
+    defaultReason: 'passt nicht',
+    whichDay: 'Ich kann einen Termin von 30 Minuten für Sie buchen, Montag bis Freitag, von 9:00 bis 17:00 Uhr. Welcher Tag passt Ihnen?',
+    offer: (day, times) => `${day} passt! Möchten Sie lieber ${times.slice(0, -1).join(', ')} oder ${times.at(-1)}? Nennen Sie mir bitte auch Ihren Namen und Ihre E-Mail-Adresse.`,
+    notFree: (t) => `${t} gehört nicht zu den freien Zeiten. Bitte wählen Sie ${SLOTS.join(', ')}.`,
+    needName: (t) => `Dann ${t}. Zum Buchen brauche ich Ihren Namen und Ihre E-Mail-Adresse.`,
+    confirmBooking: 'Bitte bestätigen Sie Ihren Termin mit dem Button unten.',
+    bookQ: (when, name, email) => `${when} für ${name} (${email}) buchen?`,
+    bookIt: 'Buchen',
+    another: 'Andere Zeit',
+    booked: (when, name) => `Gebucht: ${when}, für ${name}. Bis dahin!`,
+    otherTime: 'Kein Problem. Welcher andere Tag oder welche andere Zeit passt Ihnen?',
+    // "Dienstag, 3. November um 10:00".
+    at: 'um',
+    service: 'Termin, 30 Minuten',
+    words: {
+        returning: String.raw`zurück|rückgabe|retour|erstatt|defekt|kaputt|zu (klein|groß|gross)`,
+        reason: String.raw`zu (klein|groß|gross)|kaputt|defekt|beschädigt|falsche größe|anders überlegt|passt nicht`,
+        order: String.raw`bestellung|paket|lieferung|sendung|\bwo\b`,
+        shirt: String.raw`hemd|leinen`,
+        bag: String.raw`tasche|beutel|tote`,
+        afternoon: String.raw`nachmittag`,
+        // "morgen" also means "morning": not after a weekday, "am" or "heute".
+        tomorrow: String.raw`(?<!(?:montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|heute|am) )\bmorgen\b`,
+        first: String.raw`\berste`,
+        days: ['sonntag', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag'],
+    },
+};
