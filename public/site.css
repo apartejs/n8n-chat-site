@@ -101,18 +101,6 @@ h1 em { color: var(--brass); font-style: italic; }
 .try { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .try span { color: var(--dim); font-size: 14px; margin-inline-end: 4px; }
 
-.try button {
-  font: 14px var(--sans);
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 7px 14px;
-  cursor: pointer;
-}
-
-.try button:hover { border-color: var(--brass); }
-.try button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 
 .stage { position: relative; }
 
@@ -179,6 +167,26 @@ h2 { font: 400 32px/1.2 var(--serif); margin: 0 0 16px; }
   font-size: 14px;
   border-top: 1px solid var(--line);
 }
+
+.table-wrap { overflow-x: auto; }
+
+.compare { width: 100%; border-collapse: collapse; font-size: 15px; }
+.compare th, .compare td { text-align: start; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.compare thead th { color: var(--dim); font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+.compare tbody th { font-weight: 600; width: 28%; }
+.compare td:nth-child(2) { color: var(--dim); }
+.compare td:nth-child(3) { color: var(--text); }
+.compare thead th:nth-child(3) { color: var(--brass); }
+
+.cards-grid {
+  columns: 3 340px;
+  column-gap: 20px;
+  min-height: 400px;
+}
+
+.tile { break-inside: avoid; margin: 0 0 20px; }
+.tile-card { min-height: 60px; }
+.tile figcaption { color: var(--dim); font-size: 13px; margin-top: 8px; display: flex; gap: 8px; align-items: center; }
 
 @media (max-width: 900px) {
   .hero, .split { grid-template-columns: 1fr; gap: 32px; }

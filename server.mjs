@@ -79,7 +79,7 @@ createServer(async (req, res) => {
     if (!path || path.endsWith('/') || path.endsWith('\\')) path = join(path, 'index.html');
     try {
         const file = await readFile(join(root, path));
-        res.writeHead(200, { 'content-type': TYPES[extname(path)] ?? 'application/octet-stream', 'cache-control': 'public, max-age=300' });
+        res.writeHead(200, { 'content-type': TYPES[extname(path)] ?? 'application/octet-stream', 'cache-control': 'no-cache' });
         res.end(req.method === 'HEAD' ? undefined : file);
     } catch {
         try {

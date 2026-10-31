@@ -13,6 +13,7 @@
 <header class="top">
   <a class="mark" href="/"><span class="paren">(</span>aparté<span class="paren">)</span> <span class="for">chat for n8n</span></a>
   <nav>
+    <a href="#why">Why</a>
     <a href="#cards">Cards</a>
     <a href="#workflows">Workflows</a>
     <a href="#install">Install</a>
@@ -33,16 +34,43 @@
       </ul>
       <div class="try">
         <span>Try it:</span>
-        <button type="button" data-say="Where is my order 1001?">Where is my order?</button>
-        <button type="button" data-say="Book me an appointment on Tuesday">Book an appointment</button>
-        <button type="button" data-say="What's the weather in Lille?">The weather</button>
-        <button type="button" data-say="Tell me about this product">This product</button>
+        <button type="button" class="aparte-btn aparte-btn--surface aparte-btn--pill aparte-btn--sm" data-say="Where is my order 1001?">Where is my order?</button>
+        <button type="button" class="aparte-btn aparte-btn--surface aparte-btn--pill aparte-btn--sm" data-say="Book me an appointment on Tuesday">Book an appointment</button>
+        <button type="button" class="aparte-btn aparte-btn--surface aparte-btn--pill aparte-btn--sm" data-say="What's the weather in Lille?">The weather</button>
+        <button type="button" class="aparte-btn aparte-btn--surface aparte-btn--pill aparte-btn--sm" data-say="Tell me about this product">This product</button>
       </div>
     </div>
     <div class="stage">
       <div id="demo" class="demo" aria-label="Live demo"></div>
       <p class="note">A live demo: the widget from npm, talking to a stand-in for an n8n webhook.</p>
     </div>
+  </section>
+
+  <section id="why" class="band">
+    <h2>Why switch from n8n's widget</h2>
+    <p class="sub">Same options, same Chat Trigger, same session in the browser. What changes is what your visitors get.</p>
+    <div class="table-wrap">
+      <table class="compare">
+        <thead><tr><th></th><th>@n8n/chat</th><th>aparté chat for n8n</th></tr></thead>
+        <tbody>
+          <tr><th>Rich cards</th><td>the JSON as text</td><td>drawn: order, booking, product, weather and seven more</td></tr>
+          <tr><th>Weight, first load</th><td>~465 KB</td><td>~100 KB</td></tr>
+          <tr><th>Languages</th><td>English</td><td>ten, loaded one at a time</td></tr>
+          <tr><th>Keyboard and screen reader</th><td>buttons without names</td><td>named controls, a labelled window</td></tr>
+          <tr><th>Contrast of the visitor's bubble</th><td>2.55:1</td><td>4.7:1 (WCAG AA)</td></tr>
+          <tr><th>Dark scheme</th><td>—</td><td>yes, or following the system</td></tr>
+          <tr><th>Drive it from the page</th><td>—</td><td><code>open</code>, <code>send</code>, <code>reset</code>, <code>setDisabled</code>…</td></tr>
+          <tr><th>A tool's steps after a reload</th><td>bubbles of raw JSON</td><td>left out, as while chatting</td></tr>
+          <tr><th>License</th><td>Sustainable Use</td><td>MIT</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="gallery" class="band">
+    <h2>Eleven cards, live</h2>
+    <p class="sub">Drawn right here by <a href="https://apartejs.dev/guides/cards/">@aparte/plugin-cards</a>, the same code the widget fetches when an answer holds one: switch the units, page through the pictures, open the details.</p>
+    <div id="cards-grid" class="cards-grid" aria-live="off"></div>
   </section>
 
   <section id="cards" class="band">

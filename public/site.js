@@ -29,3 +29,14 @@ if (!still && stage && 'IntersectionObserver' in window) {
     }, { threshold: 0.5 });
     seen.observe(stage);
 }
+
+// The gallery draws when it comes near the screen, so the first view loads only the chat.
+const grid = document.getElementById('cards-grid');
+if (grid) {
+    const near = new IntersectionObserver((entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        near.disconnect();
+        import('./gallery.js').then((m) => m.drawGallery(grid));
+    }, { rootMargin: '400px' });
+    near.observe(grid);
+}
