@@ -1,0 +1,553 @@
+{
+  "name": "Answer questions about a document your website visitor attaches",
+  "nodes": [
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000001",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {
+          "allowedOrigins": "*",
+          "responseMode": "streaming",
+          "loadPreviousSession": "memory",
+          "allowFileUploads": true,
+          "allowedFilesMimeTypes": "application/pdf,text/plain,text/markdown"
+        }
+      },
+      "webhookId": "c0ffee00-d0c5-4a00-8000-000000000001"
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000003",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000002",
+              "name": "maxCharacters",
+              "value": 20000,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "all",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000005",
+      "name": "A file attached?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000004",
+              "leftValue": "={{ ($('When chat message received').item.json.files ?? []).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000006",
+      "name": "Which kind of file?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        660,
+        160
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ (() => { const f = $('When chat message received').item.json.files[0]; const name = (f.fileName || '').toLowerCase(); if (f.mimeType === 'application/pdf' || name.endsWith('.pdf')) return 0; if ((f.mimeType || '').startsWith('text/') || name.endsWith('.md') || name.endsWith('.txt')) return 1; return 2; })() }}"
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000007",
+      "name": "Read the PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        40
+      ],
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "={{ $('When chat message received').item.json.files[0].binaryKey }}",
+        "options": {
+          "joinPages": true
+        }
+      },
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000008",
+      "name": "Read the text",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        180
+      ],
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "={{ $('When chat message received').item.json.files[0].binaryKey }}",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000014",
+      "name": "The document",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        160
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000009",
+              "name": "sessionId",
+              "value": "={{ $('When chat message received').item.json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000010",
+              "name": "fileName",
+              "value": "={{ $('When chat message received').item.json.files[0].fileName }}",
+              "type": "string"
+            },
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000011",
+              "name": "fullText",
+              "value": "={{ (typeof $json.text === \"string\" ? $json.text : \"\").trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000012",
+              "name": "text",
+              "value": "={{ (typeof $json.text === \"string\" ? $json.text : \"\").trim().slice(0, $('Settings').item.json.maxCharacters) }}",
+              "type": "string"
+            },
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000013",
+              "name": "truncated",
+              "value": "={{ (typeof $json.text === \"string\" ? $json.text : \"\").trim().length > $('Settings').item.json.maxCharacters }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000019",
+      "name": "Unsupported file",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        320
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000015",
+              "name": "sessionId",
+              "value": "={{ $('When chat message received').item.json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000016",
+              "name": "fileName",
+              "value": "={{ $('When chat message received').item.json.files[0].fileName }}",
+              "type": "string"
+            },
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000017",
+              "name": "text",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "d0c5d0c5-0000-4000-8000-000000000018",
+              "name": "truncated",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000020",
+      "name": "Keep it in the conversation",
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        160
+      ],
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "user",
+              "message": "={{ $json.text ? 'Document attached by the visitor: \"' + $json.fileName + '\"' + ($json.truncated ? ' (only its beginning is kept: the document is too long)' : '') + '\\n\\n' + $json.text : 'The visitor attached \"' + $json.fileName + '\", but no text could be read from it (a scanned PDF, an image, or an unsupported format).' }}",
+              "hideFromUI": true
+            },
+            {
+              "type": "ai",
+              "message": "={{ $json.text ? 'I have read \"' + $json.fileName + '\".' : 'I could not read \"' + $json.fileName + '\".' }}",
+              "hideFromUI": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000021",
+      "name": "Back to the message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        160
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($('When chat message received').item.json) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000022",
+      "name": "Answer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1780,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ ($('When chat message received').item.json.chatInput ?? '').trim() || (($('When chat message received').item.json.files ?? []).length ? 'I attached \"' + $('When chat message received').item.json.files[0].fileName + '\". Summarize it in two or three sentences.' : 'Hello') }}",
+        "options": {
+          "systemMessage": "You answer questions about the document the visitor attached in this conversation.\nIts text is in the conversation, in a message that starts with \"Document attached by the visitor\".\nAnswer only from that document. If the answer is not in it, say so plainly; do not guess.\nQuote the passage you rely on when it helps. Answer in the visitor's language, briefly.\nIf only the beginning of the document was kept and the answer is not in it, say that it may be in the part that was not kept.\nIf no document has been attached yet, ask the visitor to attach a PDF, a .txt or a .md file with the paperclip, then ask their question.",
+          "enableStreaming": true
+        }
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000023",
+      "name": "Chat model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1480,
+        520
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.2
+        }
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000024",
+      "name": "Conversation memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        1320,
+        520
+      ],
+      "parameters": {
+        "sessionIdType": "fromInput",
+        "contextWindowLength": 20
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000025",
+      "name": "Note 25",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        -40
+      ],
+      "parameters": {
+        "content": "## Answer questions about a document your visitor attaches\n\nA chat on your website where the visitor attaches a PDF, a .txt or a .md file and asks about it. The agent answers from the document only, quotes it, and remembers it for the rest of the conversation. A file sent without a question gets a short summary.\n\n### Requirements\n- An n8n instance the visitor's browser can reach on a public URL. Tested on n8n 2.45.7.\n- An OpenAI API key, or credentials for any other chat model n8n supports.\n\n### Set up\n1. Open **Chat model** and add your OpenAI credential, or swap in any chat model.\n2. Open **When chat message received**, put your site in **Allowed Origins**, then **publish** the workflow and copy the production URL that ends in `/chat`.\n3. Paste this in your page, with your URL:\n\n```html\n<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.1.0/dist/style.css\">\n<script type=\"module\">\n  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.1.0/dist/cdn/n8n-chat.js';\n  createChat({ webhookUrl: 'YOUR_PRODUCTION_URL', allowFileUploads: true });\n</script>\n```\n\nThat widget is [@aparte/n8n-chat](https://github.com/apartejs/n8n-chat) (MIT): the visitor drops, pastes or picks a file, and finds the conversation again after a reload. n8n's own widget (`@n8n/chat`) works with this workflow too, with the same `allowFileUploads: true`.",
+        "width": 540,
+        "height": 880,
+        "color": 4
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000026",
+      "name": "Note 26",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        -280
+      ],
+      "parameters": {
+        "content": "### Read the file\nPDF, plain text and Markdown. Anything else, or a scanned PDF with no text in it, is answered with \"I could not read it\".\n\nOnly the first **20,000 characters** are kept: change `maxCharacters` in **Settings**. For long documents, a vector store is the better tool.",
+        "width": 640,
+        "height": 240,
+        "color": 7
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000027",
+      "name": "Note 27",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1290,
+        -280
+      ],
+      "parameters": {
+        "content": "### Keep it for the conversation\nThe text goes into the conversation memory as a message **hidden from the chat**: the agent reads it with every later question, and a visitor who reloads the page sees their questions, not the document.\n\nA new file in the same conversation is added beside the first.",
+        "width": 600,
+        "height": 240,
+        "color": 7
+      }
+    },
+    {
+      "id": "d0c5d0c5-0000-4000-8000-000000000028",
+      "name": "Note 28",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        680
+      ],
+      "parameters": {
+        "content": "### Memory and model\n**Simple Memory** lives in n8n's process: it is lost on a restart and does not work in queue mode. In production, use Postgres or Redis Chat Memory with the same settings.\n\nIts **Context Window Length** (20) is how far back the agent reads: in a long conversation the document eventually falls out of it.\n\nTested with a small local model. Larger models follow the instructions more closely, for example saying that a cut document may hold the answer further on.",
+        "width": 640,
+        "height": 300,
+        "color": 7
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "A file attached?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A file attached?": {
+      "main": [
+        [
+          {
+            "node": "Which kind of file?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Which kind of file?": {
+      "main": [
+        [
+          {
+            "node": "Read the PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read the text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unsupported file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the PDF": {
+      "main": [
+        [
+          {
+            "node": "The document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the text": {
+      "main": [
+        [
+          {
+            "node": "The document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The document": {
+      "main": [
+        [
+          {
+            "node": "Keep it in the conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unsupported file": {
+      "main": [
+        [
+          {
+            "node": "Keep it in the conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep it in the conversation": {
+      "main": [
+        [
+          {
+            "node": "Back to the message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Back to the message": {
+      "main": [
+        [
+          {
+            "node": "Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Keep it in the conversation",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "When chat message received",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

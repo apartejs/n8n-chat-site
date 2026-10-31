@@ -1,0 +1,999 @@
+{
+  "name": "Book appointments from your website chat, confirmed with a button",
+  "nodes": [
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000001",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "public": true,
+        "mode": "hostedChat",
+        "options": {
+          "allowedOrigins": "*",
+          "responseMode": "responseNodes",
+          "loadPreviousSession": "memory"
+        }
+      },
+      "webhookId": "b00cb00c-d0c5-4a00-8000-000000000001"
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000012",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000002",
+              "name": "businessName",
+              "value": "Your business",
+              "type": "string"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000003",
+              "name": "service",
+              "value": "a 30-minute appointment",
+              "type": "string"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000004",
+              "name": "timezone",
+              "value": "Europe/Paris",
+              "type": "string"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000005",
+              "name": "openDays",
+              "value": "1,2,3,4,5",
+              "type": "string"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000006",
+              "name": "opensAt",
+              "value": "09:00",
+              "type": "string"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000007",
+              "name": "closesAt",
+              "value": "17:00",
+              "type": "string"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000008",
+              "name": "appointmentMinutes",
+              "value": 30,
+              "type": "number"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000009",
+              "name": "daysAhead",
+              "value": 7,
+              "type": "number"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000010",
+              "name": "minimumNoticeMinutes",
+              "value": 60,
+              "type": "number"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000011",
+              "name": "richCards",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000013",
+      "name": "Bookings table",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "Website bookings",
+        "columns": {
+          "column": [
+            {
+              "name": "start",
+              "type": "string"
+            },
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "email",
+              "type": "string"
+            },
+            {
+              "name": "sessionId",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000014",
+      "name": "Booked times",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Website bookings"
+        },
+        "returnAll": true,
+        "matchType": "anyCondition",
+        "filters": {}
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000015",
+      "name": "Free times",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Free times for the next days, from the opening hours in Settings minus the bookings.\nconst s = $('Settings').first().json;\nconst zone = s.timezone;\nconst now = DateTime.now().setZone(zone);\nconst earliest = now.plus({ minutes: s.minimumNoticeMinutes });\nconst booked = new Set($input.all().map((i) => i.json.start).filter(Boolean));\nconst days = String(s.openDays).split(',').map((d) => Number(d.trim()));\nconst [openH, openM] = s.opensAt.split(':').map(Number);\nconst [closeH, closeM] = s.closesAt.split(':').map(Number);\n\nconst free = [];\nconst lines = [];\nfor (let d = 0; d < s.daysAhead; d++) {\n  const day = now.startOf('day').plus({ days: d });\n  if (!days.includes(day.weekday)) continue;\n  const times = [];\n  let t = day.set({ hour: openH, minute: openM });\n  const close = day.set({ hour: closeH, minute: closeM });\n  while (t.plus({ minutes: s.appointmentMinutes }) <= close) {\n    const start = t.toFormat('yyyy-MM-dd HH:mm');\n    if (t >= earliest && !booked.has(start)) { free.push(start); times.push(t.toFormat('HH:mm')); }\n    t = t.plus({ minutes: s.appointmentMinutes });\n  }\n  if (times.length) lines.push(day.toFormat('cccc d LLLL yyyy') + ' (' + day.toFormat('yyyy-MM-dd') + '): ' + times.join(', '));\n}\n\n// What this visitor has already booked, so the agent can tell them.\nconst sessionId = $('When chat message received').first().json.sessionId;\nconst mine = $input.all().filter((i) => i.json.sessionId === sessionId && i.json.start).map((i) => i.json.start);\n\nreturn [{ json: {\n  sessionId,\n  chatInput: $('When chat message received').first().json.chatInput,\n  today: now.toFormat('cccc d LLLL yyyy, HH:mm'),\n  freeTimes: lines.join('\\n') || 'No free time in the coming days.',\n  free,\n  alreadyBooked: mine.join(', '),\n} }];"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000016",
+      "name": "Answer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ ($('When chat message received').item.json.chatInput ?? '').trim() || 'Hello' }}",
+        "options": {
+          "systemMessage": "=You book appointments for {{ $('Settings').item.json.businessName }}: {{ $('Settings').item.json.service }}.\nNow it is {{ $json.today }} ({{ $('Settings').item.json.timezone }}).\n\nFree times:\n{{ $json.freeTimes }}\n{{ $json.alreadyBooked ? '\\nAlready booked in this conversation: ' + $json.alreadyBooked : '' }}\n\nHow to book:\n1. Ask which day suits the visitor, then offer two or three free times from the list. Never offer a time that is not in the list.\n2. Ask for their name and email address.\n3. When you have the time, the name and the email, call Request_a_booking with \"start\" written exactly as \"YYYY-MM-DD HH:mm\" from the list, for example \"2026-11-03 10:00\".\n4. Never say an appointment is booked: the visitor confirms with a button, and the booking is made then.\n\nAnswer in the visitor's language, in one to three short sentences. For anything else, say you can only help with appointments.",
+          "returnIntermediateSteps": true
+        }
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000017",
+      "name": "Chat model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        960,
+        540
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.2
+        }
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000018",
+      "name": "Conversation memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        1100,
+        540
+      ],
+      "parameters": {
+        "sessionIdType": "fromInput",
+        "contextWindowLength": 20
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000019",
+      "name": "Request a booking",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1240,
+        540
+      ],
+      "parameters": {
+        "description": "Ask the visitor to confirm an appointment with a button. Call it once you have a free time, their name and their email.",
+        "language": "javaScript",
+        "jsCode": "return 'The visitor now sees a button to confirm ' + query.start + '. Do not say it is booked.';",
+        "specifyInputSchema": true,
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"start\": \"2026-11-03 10:00\",\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"ada@example.com\"\n}"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000020",
+      "name": "Booking asked?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const out = $input.first().json;\nconst steps = out.intermediateSteps ?? [];\nconst call = steps.filter((s) => s.action?.tool === 'Request_a_booking').pop();\nconst free = $('Free times').first().json.free;\nconst sessionId = $('Free times').first().json.sessionId;\nif (!call) return [{ json: { sessionId, asked: false, output: out.output } }];\nconst r = call.action.toolInput ?? {};\nconst start = String(r.start ?? '').trim();\nconst name = String(r.name ?? '').trim();\nconst email = String(r.email ?? '').trim();\nlet problem = '';\nif (!free.includes(start)) problem = start + ' is not one of the free times. Please choose another time.';\nelse if (!name) problem = 'I need your name to book.';\nelse if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) problem = 'I need a valid email address to book.';\nconst when = DateTime.fromFormat(start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').first().json.timezone });\nreturn [{ json: {\n  sessionId, asked: true, ok: !problem, problem, output: out.output,\n  start, name, email,\n  when: when.isValid ? when.toFormat('cccc d LLLL') + ' at ' + when.toFormat('HH:mm') : start,\n} }];"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000021",
+      "name": "Which reply?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ !$json.asked ? 0 : ($json.ok ? 1 : 2) }}"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000022",
+      "name": "Reply",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        1780,
+        100
+      ],
+      "parameters": {
+        "operation": "send",
+        "message": "={{ $json.output }}"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000023",
+      "name": "Before the buttons",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        1780,
+        300
+      ],
+      "parameters": {
+        "operation": "send",
+        "message": "={{ $json.output }}"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000024",
+      "name": "Confirm with buttons",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2000,
+        300
+      ],
+      "parameters": {
+        "operation": "sendAndWait",
+        "message": "={{ (r => 'Book ' + r.when + ' for ' + r.name + ' (' + r.email + ')?')($('Booking asked?').item.json) }}",
+        "responseType": "approval",
+        "blockUserInput": true,
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Book it",
+            "disapproveLabel": "Another time"
+          }
+        }
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000025",
+      "name": "Not possible",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        1780,
+        520
+      ],
+      "parameters": {
+        "operation": "send",
+        "message": "={{ $json.problem }}"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000027",
+      "name": "Confirmed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2220,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000026",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000028",
+      "name": "Still free?",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2440,
+        200
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Website bookings"
+        },
+        "returnAll": true,
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "start",
+              "condition": "eq",
+              "keyValue": "={{ $('Booking asked?').item.json.start }}"
+            }
+          ]
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000030",
+      "name": "Taken meanwhile?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2660,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000029",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000031",
+      "name": "Save the booking",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        300
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Website bookings"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "start": "={{ $('Booking asked?').item.json.start }}",
+            "name": "={{ $('Booking asked?').item.json.name }}",
+            "email": "={{ $('Booking asked?').item.json.email }}",
+            "sessionId": "={{ $('Booking asked?').item.json.sessionId }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "start",
+              "displayName": "start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000033",
+      "name": "Booked",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3100,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000032",
+              "name": "reply",
+              "value": "={{ 'Booked: ' + $('Booking asked?').item.json.when + ', for ' + $('Booking asked?').item.json.name + '. See you then!' + ($('Settings').item.json.richCards ? '\\n\\n```card-order\\n' + JSON.stringify({ kind: 'booking', status: 'confirmed', items: [{ title: $('Settings').item.json.service }], booking: { start: DateTime.fromFormat($('Booking asked?').item.json.start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').item.json.timezone }).toISO(), end: DateTime.fromFormat($('Booking asked?').item.json.start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').item.json.timezone }).plus({ minutes: $('Settings').item.json.appointmentMinutes }).toISO(), location: $('Settings').item.json.businessName } }) + '\\n```' : '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000035",
+      "name": "Taken",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2880,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000034",
+              "name": "reply",
+              "value": "={{ 'Sorry, ' + $('Booking asked?').item.json.when + ' was just taken. Which other time suits you?' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000037",
+      "name": "Another time",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2440,
+        420
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000036",
+              "name": "reply",
+              "value": "No problem. Which other day or time suits you?",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000038",
+      "name": "Tell the visitor",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        3320,
+        300
+      ],
+      "parameters": {
+        "operation": "send",
+        "message": "={{ $json.reply }}"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000039",
+      "name": "Keep it in the conversation",
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        3540,
+        300
+      ],
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "user",
+              "message": "={{ $('Confirm with buttons').item.json.data.approved ? 'Book it' : 'Another time' }}"
+            },
+            {
+              "type": "ai",
+              "message": "={{ $json.chatInput }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000040",
+      "name": "Keep the problem in the conversation",
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2000,
+        520
+      ],
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "user",
+              "message": "(The booking could not be requested.)",
+              "hideFromUI": true
+            },
+            {
+              "type": "ai",
+              "message": "={{ $json.chatInput }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000041",
+      "name": "Note 41",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        0
+      ],
+      "parameters": {
+        "content": "## Book appointments from the chat on your website\n\nA visitor asks for an appointment in the chat on your site. The agent offers free times from your opening hours, asks for a name and an email, and the visitor **confirms with a button**. The booking is saved in a data table, and a time that is taken can no longer be offered.\n\n### Requirements\n- An n8n instance the visitor's browser can reach on a public URL, with data tables. Tested on n8n 2.45.7.\n- An OpenAI API key, or credentials for any other chat model n8n supports that can call tools.\n\n### Set up\n1. Open **Settings**: your business name, the service, the timezone, the opening days (1 = Monday) and hours, the length of an appointment. `richCards` adds a card under the answer (the order, the booking) as a code block: the aparté chat widget for n8n draws it, n8n's own chat shows it as code. Turn it off for n8n's chat.\n2. Open **Chat model** and add your OpenAI credential.\n3. Open **When chat message received**, put your site in **Allowed Origins**, then **publish** the workflow and copy the production URL that ends in `/chat`.\n4. Paste this in your page, with your URL:\n\n```html\n<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.1.0/dist/style.css\">\n<script type=\"module\">\n  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.1.0/dist/cdn/n8n-chat.js';\n  createChat({ webhookUrl: 'YOUR_PRODUCTION_URL' });\n</script>\n```\n\nThat widget is [@aparte/n8n-chat](https://github.com/apartejs/n8n-chat) (MIT): it shows the confirm buttons inside the conversation and keeps the conversation after a reload. n8n's own widget (`@n8n/chat`) works with this workflow too.",
+        "width": 580,
+        "height": 980,
+        "color": 4
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000042",
+      "name": "Note 42",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        100
+      ],
+      "parameters": {
+        "content": "### Free times\nWorked out from **Settings**, minus the bookings already in the **Website bookings** data table, which the workflow creates on the first message. The agent only picks from that list.",
+        "width": 620,
+        "height": 180,
+        "color": 7
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000043",
+      "name": "Note 43",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1740,
+        -200
+      ],
+      "parameters": {
+        "content": "### The visitor confirms\nThe agent only *requests* a booking. The workflow checks the time is free and the email looks right, then shows **Book it** / **Another time**. On **Book it** it checks again, in case someone took the time meanwhile, and saves the booking.\n\nTo also put it in your calendar or send an email, add a Google Calendar or Gmail node after **Save the booking**.\n\nThe agent answers in the visitor's language; the button labels and the replies after them are written in **Confirm with buttons**, **Booked**, **Taken** and **Another time**: translate them for your site.",
+        "width": 700,
+        "height": 240,
+        "color": 7
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000044",
+      "name": "Note 44",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        940,
+        720
+      ],
+      "parameters": {
+        "content": "### Memory and limits\n**Simple Memory** lives in n8n's process: it is lost on a restart and does not work in queue mode. In production, use Postgres or Redis Chat Memory with the same settings.\n\nThere is no cancellation and no reminder: a visitor who wants to change a booking has to contact you. The chat model must be able to call tools.",
+        "width": 640,
+        "height": 260,
+        "color": 7
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Bookings table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bookings table": {
+      "main": [
+        [
+          {
+            "node": "Booked times",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booked times": {
+      "main": [
+        [
+          {
+            "node": "Free times",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Free times": {
+      "main": [
+        [
+          {
+            "node": "Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer": {
+      "main": [
+        [
+          {
+            "node": "Booking asked?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booking asked?": {
+      "main": [
+        [
+          {
+            "node": "Which reply?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Which reply?": {
+      "main": [
+        [
+          {
+            "node": "Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Before the buttons",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not possible",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Before the buttons": {
+      "main": [
+        [
+          {
+            "node": "Confirm with buttons",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm with buttons": {
+      "main": [
+        [
+          {
+            "node": "Confirmed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmed?": {
+      "main": [
+        [
+          {
+            "node": "Still free?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Another time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Still free?": {
+      "main": [
+        [
+          {
+            "node": "Taken meanwhile?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Taken meanwhile?": {
+      "main": [
+        [
+          {
+            "node": "Taken",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save the booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the booking": {
+      "main": [
+        [
+          {
+            "node": "Booked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booked": {
+      "main": [
+        [
+          {
+            "node": "Tell the visitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Taken": {
+      "main": [
+        [
+          {
+            "node": "Tell the visitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Another time": {
+      "main": [
+        [
+          {
+            "node": "Tell the visitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tell the visitor": {
+      "main": [
+        [
+          {
+            "node": "Keep it in the conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not possible": {
+      "main": [
+        [
+          {
+            "node": "Keep the problem in the conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request a booking": {
+      "ai_tool": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Keep it in the conversation",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Keep the problem in the conversation",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "When chat message received",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

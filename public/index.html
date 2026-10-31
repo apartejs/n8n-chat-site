@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aparté chat for n8n</title>
+<meta name="description" content="A drop-in chat widget for n8n's Chat Trigger, with rich cards your workflow writes as text: orders, bookings, products, weather. Free and open source.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='4' y='24' font-family='Georgia' font-size='24' fill='%23d9a24b'%3E( )%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0/dist/style.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="top">
+  <a class="mark" href="/"><span class="paren">(</span>aparté<span class="paren">)</span> <span class="for">chat for n8n</span></a>
+  <nav>
+    <a href="#cards">Cards</a>
+    <a href="#workflows">Workflows</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/apartejs/n8n-chat">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="pitch">
+      <h1>Your n8n chat,<br><em>with cards.</em></h1>
+      <p class="lead">A drop-in replacement for n8n's chat widget. Same setup, same Chat Trigger, and your
+        workflow can answer with an order, a booking, a product or the weather, drawn as a card.</p>
+      <ul class="facts">
+        <li>Free, open source, MIT</li>
+        <li>Works with any n8n Chat Trigger</li>
+        <li>One script tag, or npm</li>
+      </ul>
+      <div class="try">
+        <span>Try it:</span>
+        <button type="button" data-say="Where is my order 1001?">Where is my order?</button>
+        <button type="button" data-say="Book me an appointment on Tuesday">Book an appointment</button>
+        <button type="button" data-say="What's the weather in Lille?">The weather</button>
+        <button type="button" data-say="Tell me about this product">This product</button>
+      </div>
+    </div>
+    <div class="stage">
+      <div id="demo" class="demo" aria-label="Live demo"></div>
+      <p class="note">A live demo: the widget from npm, talking to a stand-in for an n8n webhook.</p>
+    </div>
+  </section>
+
+  <section id="cards" class="band">
+    <h2>A card is a code block your workflow writes</h2>
+    <div class="split">
+      <div>
+        <p>n8n's chat only carries text, so the card travels as text: a code block whose language
+          names the card, holding its fields as JSON. This widget draws it; any other chat shows the
+          block as code, under the sentence that comes before it.</p>
+        <p>Eleven cards: <code>weather</code>, <code>order</code> (bookings too), <code>product</code>,
+          <code>place</code>, <code>items</code>, <code>stats</code>, <code>stock</code>, <code>plan</code>,
+          <code>score</code>, <code>media</code>, <code>link</code>. Each is fetched the first time an answer
+          uses it.</p>
+        <p>Build the block in a Code node from your tool's real result, rather than asking the model to
+          write JSON: it is exact every time, and a setting can turn it off.</p>
+      </div>
+<pre class="code"><code>Order 1001 is on its way.
+
+```card-order
+{ "number": "1001", "status": "shipped",
+  "line_items": [
+    { "name": "Linen shirt", "quantity": 1, "total": "49.00" }
+  ],
+  "total": "49.00", "currency": "EUR" }
+```</code></pre>
+    </div>
+  </section>
+
+  <section id="workflows" class="band">
+    <h2>Workflows to start from</h2>
+    <p class="sub">Tested on n8n, each with its setup in sticky notes. Import the JSON, set your credentials, and point the widget at its Chat Trigger.</p>
+    <div class="grid">
+      <article class="wf">
+        <h3>Shop assistant</h3>
+        <p>Where is my order, and returns: checks the order number against the email, the return window, asks for a photo of a damaged item, confirms with buttons and emails your support. Answers with the order's card.</p>
+        <p class="tags"><span>order card</span><span>buttons</span><span>photo upload</span></p>
+        <a href="workflows/shop-returns.json" download>Download the workflow</a>
+      </article>
+      <article class="wf">
+        <h3>Booking assistant</h3>
+        <p>Offers free times from your opening hours, takes a name and email, confirms with buttons, checks the time is still free and saves it. Answers with the booking's card.</p>
+        <p class="tags"><span>booking card</span><span>buttons</span><span>Data Table</span></p>
+        <a href="workflows/booking.json" download>Download the workflow</a>
+      </article>
+      <article class="wf">
+        <h3>Questions about a document</h3>
+        <p>The visitor attaches a PDF or a text file and asks about it; the answer stays on the document. Works with n8n's own chat too.</p>
+        <p class="tags"><span>file upload</span><span>memory</span></p>
+        <a href="workflows/document-qa.json" download>Download the workflow</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="install" class="band">
+    <h2>Install</h2>
+    <p class="sub">Coming from <code>@n8n/chat</code>: change the two URLs. Everything else carries over.</p>
+<pre class="code"><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0/dist/style.css"&gt;
+&lt;script type="module"&gt;
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0/dist/cdn/n8n-chat.js';
+  createChat({
+    webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',
+    // Optional: what the visitor is looking at, for your workflow to read.
+    metadata: { page: location.href, title: document.title },
+  });
+&lt;/script&gt;</code></pre>
+    <p>A block in the page instead of a button in the corner: <code>mode: 'embedded'</code> with a <code>target</code> that has a height. Every option is in the <a href="https://github.com/apartejs/n8n-chat#readme">README</a>.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Built on <a href="https://apartejs.dev">aparté</a>, an open-source chat UI library. Not affiliated with n8n GmbH; n8n is their trademark.</p>
+</footer>
+
+<script type="module" src="site.js"></script>
+</body>
+</html>

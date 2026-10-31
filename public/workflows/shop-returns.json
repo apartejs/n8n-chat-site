@@ -1,0 +1,1257 @@
+{
+  "name": "Answer order status and open returns from your shop's website chat",
+  "nodes": [
+    {
+      "id": "5b095b09-0000-4000-8000-000000000001",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "public": true,
+        "mode": "hostedChat",
+        "options": {
+          "allowedOrigins": "*",
+          "responseMode": "responseNodes",
+          "loadPreviousSession": "memory",
+          "allowFileUploads": true,
+          "allowedFilesMimeTypes": "image/*"
+        }
+      },
+      "webhookId": "5b095b09-d0c5-4a00-8000-000000000001"
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000006",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b095b09-0000-4000-8000-000000000002",
+              "name": "shopName",
+              "value": "Your shop",
+              "type": "string"
+            },
+            {
+              "id": "5b095b09-0000-4000-8000-000000000003",
+              "name": "supportEmail",
+              "value": "support@example.com",
+              "type": "string"
+            },
+            {
+              "id": "5b095b09-0000-4000-8000-000000000004",
+              "name": "fromEmail",
+              "value": "chat@example.com",
+              "type": "string"
+            },
+            {
+              "id": "5b095b09-0000-4000-8000-000000000005",
+              "name": "richCards",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000007",
+      "name": "Returns table",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "Website return requests",
+        "columns": {
+          "column": [
+            {
+              "name": "orderNumber",
+              "type": "string"
+            },
+            {
+              "name": "email",
+              "type": "string"
+            },
+            {
+              "name": "items",
+              "type": "string"
+            },
+            {
+              "name": "reason",
+              "type": "string"
+            },
+            {
+              "name": "photo",
+              "type": "string"
+            },
+            {
+              "name": "sessionId",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000008",
+      "name": "Back to the message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($('When chat message received').item.json) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000009",
+      "name": "Answer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ ($('When chat message received').item.json.chatInput ?? '').trim() || (($('When chat message received').item.json.files ?? []).length ? 'Here is the photo.' : 'Hello') }}",
+        "options": {
+          "systemMessage": "=You are the customer assistant of {{ $('Settings').item.json.shopName }}. You can tell a visitor where their order is, and open a return.\n\nOrders:\n- To look up an order you need its number and the email address it was placed with. Call Find_the_order. Never give any order detail without it.\n- Tell the status, the items and the dates the tool returns. Do not invent tracking numbers or delivery dates.\n\nReturns:\n- Only what Find_the_order says can be returned can be returned.\n- Ask which items and why. If an item arrived damaged, ask the visitor to attach a photo of it to their next message.\n- Then call Request_a_return with the order number, the email, the items and the reason. Never say the return is open or processed: the visitor confirms with a button, so just tell them to confirm with the button below.\n\nFor anything else (products, sizes, shipping costs), say you can only help with orders and returns, and give the support address {{ $('Settings').item.json.supportEmail }}.\nAnswer in the visitor's language, in one to three short sentences.",
+          "returnIntermediateSteps": true
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000010",
+      "name": "Chat model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        700,
+        540
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.2
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000011",
+      "name": "Conversation memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        840,
+        540
+      ],
+      "parameters": {
+        "sessionIdType": "fromInput",
+        "contextWindowLength": 20
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000012",
+      "name": "Find the order",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        980,
+        540
+      ],
+      "parameters": {
+        "description": "Look up an order by its number and the email address it was placed with. Returns its status, items, dates, and whether it can be returned.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $workflow.id }}"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "orderNumber": "={{ $fromAI('orderNumber', 'The order number', 'string') }}",
+            "email": "={{ $fromAI('email', 'The email address the order was placed with', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "orderNumber",
+              "displayName": "orderNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000013",
+      "name": "Request a return",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        540
+      ],
+      "parameters": {
+        "description": "Ask the visitor to confirm a return with a button. Call it once you know the order number, the email, the items to return and the reason.",
+        "language": "javaScript",
+        "jsCode": "return 'The visitor now sees a button to confirm the return for order ' + query.orderNumber + '. Do not say it is open.';",
+        "specifyInputSchema": true,
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"orderNumber\": \"1001\",\n  \"email\": \"ada@example.com\",\n  \"items\": \"Linen shirt\",\n  \"reason\": \"Too small\"\n}"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000014",
+      "name": "Return asked?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const out = $input.first().json;\nconst call = (out.intermediateSteps ?? []).filter((s) => s.action?.tool === 'Request_a_return').pop();\nconst t = $('When chat message received').first().json;\n// richCards: the order the agent looked up, drawn as a card by the aparté widget (a code block elsewhere).\nlet output = out.output;\nconst found = (out.intermediateSteps ?? []).filter((s) => s.action?.tool === 'Find_the_order').pop();\nif ($('Settings').first().json.richCards && found) {\n  let seen = found.observation;\n  try { seen = typeof seen === 'string' ? JSON.parse(seen) : seen; } catch { seen = null; }\n  const order = [].concat(seen ?? []).map((o) => o?.json ?? o).find((o) => o?.found && o.card);\n  if (order) output += '\\n\\n\\u0060\\u0060\\u0060card-order\\n' + JSON.stringify(order.card) + '\\n\\u0060\\u0060\\u0060';\n}\nconst base = { sessionId: t.sessionId, output };\nif (!call) return [{ json: { ...base, asked: false } }];\nconst r = call.action.toolInput ?? {};\nconst photo = (t.files ?? [])[0]?.fileName ?? '';\nreturn [{ json: { ...base, asked: true,\n  orderNumber: String(r.orderNumber ?? '').replace(/[^0-9A-Za-z-]/g, ''),\n  email: String(r.email ?? '').trim(),\n  items: String(r.items ?? '').trim(),\n  reason: String(r.reason ?? '').trim(),\n  photo,\n} }];"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000016",
+      "name": "Asked?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5b095b09-0000-4000-8000-000000000015",
+              "leftValue": "={{ $json.asked }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000017",
+      "name": "Reply",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        1540,
+        100
+      ],
+      "parameters": {
+        "operation": "send",
+        "message": "={{ $json.output }}"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000018",
+      "name": "Check the order again",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $workflow.id }}"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "orderNumber": "={{ $json.orderNumber }}",
+            "email": "={{ $json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "orderNumber",
+              "displayName": "orderNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000019",
+      "name": "Return already open?",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1760,
+        300
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Website return requests"
+        },
+        "returnAll": true,
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "orderNumber",
+              "condition": "eq",
+              "keyValue": "={{ $json.number ?? \"-\" }}"
+            }
+          ]
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000020",
+      "name": "Can it be returned?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const ask = $('Return asked?').first().json;\nconst order = $('Check the order again').first().json;\nconst open = $input.all().some((i) => i.json.id);\nlet problem = '';\nif (!order.found) problem = order.message;\nelse if (open) problem = 'A return is already open for order ' + order.number + '. Our team will contact you about it.';\nelse if (!order.returnable) problem = 'Order ' + order.number + ' cannot be returned: ' + order.returnNote;\nelse if (!ask.items || !ask.reason) problem = 'Tell me which items you want to return, and why.';\nreturn [{ json: { ...ask, ok: !problem, problem, order } }];"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000022",
+      "name": "Returnable?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2200,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5b095b09-0000-4000-8000-000000000021",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000023",
+      "name": "Before the buttons",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2420,
+        200
+      ],
+      "parameters": {
+        "operation": "send",
+        "message": "={{ $json.output }}"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000024",
+      "name": "Confirm with buttons",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2640,
+        200
+      ],
+      "parameters": {
+        "operation": "sendAndWait",
+        "message": "={{ (r => 'Open a return for ' + r.items + ' from order ' + r.order.number + '? Reason: ' + r.reason + (r.photo ? ' (photo: ' + r.photo + ')' : ''))($('Can it be returned?').item.json) }}",
+        "responseType": "approval",
+        "blockUserInput": true,
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Open the return",
+            "disapproveLabel": "Keep my order"
+          }
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000025",
+      "name": "Not possible",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2420,
+        520
+      ],
+      "parameters": {
+        "operation": "send",
+        "message": "={{ $json.problem }}"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000027",
+      "name": "Confirmed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2860,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5b095b09-0000-4000-8000-000000000026",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000028",
+      "name": "Save the return",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3080,
+        100
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Website return requests"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "orderNumber": "={{ $('Can it be returned?').item.json.order.number }}",
+            "email": "={{ $('Can it be returned?').item.json.email }}",
+            "items": "={{ $('Can it be returned?').item.json.items }}",
+            "reason": "={{ $('Can it be returned?').item.json.reason }}",
+            "photo": "={{ $('Can it be returned?').item.json.photo }}",
+            "sessionId": "={{ $('Can it be returned?').item.json.sessionId }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "orderNumber",
+              "displayName": "orderNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "items",
+              "displayName": "items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "photo",
+              "displayName": "photo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000029",
+      "name": "With the photo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3300,
+        100
+      ],
+      "parameters": {
+        "jsCode": "const r = $('Can it be returned?').first().json;\nconst binary = $('When chat message received').first().binary ?? {};\nreturn [{ json: { ...r, attachments: Object.keys(binary).join(',') }, binary }];"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000030",
+      "name": "Tell support",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3520,
+        100
+      ],
+      "parameters": {
+        "fromEmail": "={{ $('Settings').item.json.fromEmail }}",
+        "toEmail": "={{ $('Settings').item.json.supportEmail }}",
+        "subject": "={{ 'Return request for order ' + $json.order.number }}",
+        "emailFormat": "text",
+        "text": "={{ 'A visitor opened a return in the website chat.\\n\\nOrder: ' + $json.order.number + ' (' + $json.order.total + ', shipped on ' + $json.order.shippedOn + ')\\nEmail: ' + $json.email + '\\nItems: ' + $json.items + '\\nReason: ' + $json.reason + '\\nPhoto: ' + ($json.photo || 'none') }}",
+        "options": {
+          "fileAttachments": "={{ $json.attachments }}",
+          "appendAttribution": false,
+          "replyTo": "={{ $json.email }}"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000032",
+      "name": "Return opened",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3740,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b095b09-0000-4000-8000-000000000031",
+              "name": "reply",
+              "value": "={{ 'Your return for order ' + $('Can it be returned?').item.json.order.number + ' is open. We will email you at ' + $('Can it be returned?').item.json.email + ' with how to send the items back.' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000034",
+      "name": "Order kept",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3080,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b095b09-0000-4000-8000-000000000033",
+              "name": "reply",
+              "value": "All right, your order stays as it is. Anything else?",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000035",
+      "name": "Tell the visitor",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        3960,
+        200
+      ],
+      "parameters": {
+        "operation": "send",
+        "message": "={{ $json.reply }}"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000036",
+      "name": "Keep it in the conversation",
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        4180,
+        200
+      ],
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "user",
+              "message": "={{ $('Confirm with buttons').item.json.data.approved ? 'Open the return' : 'Keep my order' }}"
+            },
+            {
+              "type": "ai",
+              "message": "={{ $json.chatInput }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000037",
+      "name": "Keep the problem in the conversation",
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2640,
+        520
+      ],
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "user",
+              "message": "(The return could not be requested.)",
+              "hideFromUI": true
+            },
+            {
+              "type": "ai",
+              "message": "={{ $json.chatInput }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000038",
+      "name": "When called by the agent",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        900
+      ],
+      "parameters": {
+        "inputSource": "workflowInputs",
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "orderNumber"
+            },
+            {
+              "name": "email"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000040",
+      "name": "Return policy",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        900
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b095b09-0000-4000-8000-000000000039",
+              "name": "returnDays",
+              "value": 30,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000041",
+      "name": "Sample orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        900
+      ],
+      "parameters": {
+        "jsCode": "// Sample orders, shaped like WooCommerce's. Replace this node with your shop's \"Get order\" node.\nconst day = (n) => DateTime.now().minus({ days: n }).toISO();\nconst orders = [\n  { number: '1001', status: 'completed', date_created: day(12), date_completed: day(8), total: '68.00', currency: 'EUR',\n    billing: { email: 'ada@example.com' },\n    line_items: [{ name: 'Linen shirt', quantity: 1, total: '49.00' }, { name: 'Canvas tote bag', quantity: 1, total: '19.00' }] },\n  { number: '1002', status: 'processing', date_created: day(1), date_completed: null, total: '120.00', currency: 'EUR',\n    billing: { email: 'bob@example.com' },\n    line_items: [{ name: 'Wool coat', quantity: 1, total: '120.00' }] },\n  { number: '1003', status: 'completed', date_created: day(70), date_completed: day(65), total: '35.00', currency: 'EUR',\n    billing: { email: 'carla@example.com' },\n    line_items: [{ name: 'Leather belt', quantity: 1, total: '35.00' }] },\n  { number: '1004', status: 'cancelled', date_created: day(20), date_completed: null, total: '15.00', currency: 'EUR',\n    billing: { email: 'dan@example.com' },\n    line_items: [{ name: 'Cotton socks (3 pairs)', quantity: 1, total: '15.00' }] },\n  { number: '1005', status: 'completed', date_created: day(6), date_completed: day(3), total: '42.00', currency: 'EUR',\n    billing: { email: 'elise@example.fr' },\n    line_items: [{ name: 'Ceramic mug set', quantity: 1, total: '42.00' }] },\n];\nreturn orders.map((o) => ({ json: o }));"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000042",
+      "name": "Matching order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        900
+      ],
+      "parameters": {
+        "jsCode": "const want = $('When called by the agent').first().json;\nconst number = String(want.orderNumber ?? '').replace(/[^0-9A-Za-z-]/g, '');\nconst email = String(want.email ?? '').trim().toLowerCase();\nconst order = $input.all().map((i) => i.json).find((o) => String(o.number ?? o.id) === number);\nif (!number || !email || !order || String(order.billing?.email ?? '').toLowerCase() !== email) {\n  return [{ json: { found: false, message: 'No order matches this number and email address.' } }];\n}\nconst days = $('Return policy').first().json.returnDays;\nconst statusText = { pending: 'waiting for payment', processing: 'being prepared, not shipped yet', 'on-hold': 'on hold',\n  completed: 'shipped', cancelled: 'cancelled', refunded: 'refunded', failed: 'payment failed' }[order.status] ?? order.status;\nconst shipped = order.date_completed ? DateTime.fromISO(order.date_completed) : null;\nconst returnUntil = shipped ? shipped.plus({ days }) : null;\nconst returnable = order.status === 'completed' && returnUntil !== null && returnUntil >= DateTime.now();\nreturn [{ json: {\n  found: true,\n  number: String(order.number ?? order.id),\n  status: statusText,\n  placedOn: DateTime.fromISO(order.date_created).toFormat('d LLLL yyyy'),\n  shippedOn: shipped ? shipped.toFormat('d LLLL yyyy') : null,\n  items: order.line_items.map((l) => l.quantity + ' × ' + l.name).join(', '),\n  total: order.total + ' ' + order.currency,\n  returnable,\n  returnNote: returnable ? 'Can be returned until ' + returnUntil.toFormat('d LLLL yyyy') + '.'\n    : order.status === 'completed' ? 'The ' + days + '-day return window has passed.' : 'Only a shipped order can be returned.',\n  // This shop's \"completed\" is a parcel sent: say shipped, which WooCommerce's word alone does not.\n  card: { number: String(order.number ?? order.id), status: order.status === 'completed' ? 'shipped' : order.status, date_created: order.date_created,\n    line_items: order.line_items, total: order.total, currency: order.currency },\n} }];"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000043",
+      "name": "Note 43",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -680,
+        0
+      ],
+      "parameters": {
+        "content": "## Order status and returns in your shop's website chat\n\nA visitor asks in the chat on your shop where their order is, or wants to return something. The agent looks the order up by **number and email**, tells its status, and for a return asks which items and why, with a photo if the item is damaged. The visitor **confirms with a button**, the return is saved in a data table, and your support team gets an email.\n\n### Requirements\n- An n8n instance the visitor's browser can reach on a public URL, with data tables. Tested on n8n 2.45.7.\n- An OpenAI API key, or credentials for any other chat model n8n supports that can call tools.\n- An SMTP account to email your support team, or swap **Tell support** for Gmail, Outlook or Slack.\n\n### Set up\n1. Open **Settings**: your shop's name, the support address, the sender address. `richCards` adds a card under the answer (the order, the booking) as a code block: the aparté chat widget for n8n draws it, n8n's own chat shows it as code. Turn it off for n8n's chat.\n2. Add your credentials to **Chat model** and **Tell support**.\n3. Connect your orders (see the note under the workflow), and set the return window in **Return policy**.\n4. Open **When chat message received**, put your site in **Allowed Origins**, then **publish** the workflow and copy the production URL that ends in `/chat`.\n5. Paste this in your page, with your URL:\n\n```html\n<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.1.0/dist/style.css\">\n<script type=\"module\">\n  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.1.0/dist/cdn/n8n-chat.js';\n  createChat({ webhookUrl: 'YOUR_PRODUCTION_URL', allowFileUploads: true });\n</script>\n```\n\nThat widget is [@aparte/n8n-chat](https://github.com/apartejs/n8n-chat) (MIT): it shows the confirm buttons inside the conversation, lets the visitor drop or paste a photo, and keeps the conversation after a reload. n8n's own widget (`@n8n/chat`) works with this workflow too.",
+        "width": 620,
+        "height": 1160,
+        "color": 4
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000044",
+      "name": "Note 44",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        -160
+      ],
+      "parameters": {
+        "content": "### The visitor confirms\nThe agent only *requests* a return. The workflow looks the order up again, checks it can be returned and has no open return, then shows **Open the return** / **Keep my order**. The photo attached to the message that asked for the return goes to support with the email; if the email fails, the return is still saved.\n\nThe agent answers in the visitor's language; the button labels and the replies after them are written in **Confirm with buttons**, **Return opened** and **Order kept**: translate them for your site.",
+        "width": 760,
+        "height": 200,
+        "color": 7
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000045",
+      "name": "Note 45",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        760
+      ],
+      "parameters": {
+        "content": "### Connect your orders\n**Sample orders** holds five test orders in WooCommerce's shape (try order 1001 with ada@example.com). Replace it with your shop's node: a WooCommerce **Order → Get** with the order ID `{{ $json.orderNumber }}`, or a Shopify or HTTP Request node mapped to the same fields (`number`, `status`, `billing.email`, `line_items`, `date_created`, `date_completed`, `total`, `currency`).\n\n**Matching order** only answers when the number and the email both match, and gives the same answer when they do not, so the chat never reveals that an order exists.",
+        "width": 900,
+        "height": 300,
+        "color": 7
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000046",
+      "name": "Note 46",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        720
+      ],
+      "parameters": {
+        "content": "### Memory and limits\n**Simple Memory** lives in n8n's process: it is lost on a restart and does not work in queue mode. In production, use Postgres or Redis Chat Memory with the same settings.\n\nThe chat model must be able to call tools. The return is a request: refunds, labels and stock stay with your team.",
+        "width": 620,
+        "height": 240,
+        "color": 7
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Returns table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Returns table": {
+      "main": [
+        [
+          {
+            "node": "Back to the message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Back to the message": {
+      "main": [
+        [
+          {
+            "node": "Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer": {
+      "main": [
+        [
+          {
+            "node": "Return asked?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return asked?": {
+      "main": [
+        [
+          {
+            "node": "Asked?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Asked?": {
+      "main": [
+        [
+          {
+            "node": "Check the order again",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the order again": {
+      "main": [
+        [
+          {
+            "node": "Return already open?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return already open?": {
+      "main": [
+        [
+          {
+            "node": "Can it be returned?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Can it be returned?": {
+      "main": [
+        [
+          {
+            "node": "Returnable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Returnable?": {
+      "main": [
+        [
+          {
+            "node": "Before the buttons",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not possible",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Before the buttons": {
+      "main": [
+        [
+          {
+            "node": "Confirm with buttons",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm with buttons": {
+      "main": [
+        [
+          {
+            "node": "Confirmed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmed?": {
+      "main": [
+        [
+          {
+            "node": "Save the return",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Order kept",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the return": {
+      "main": [
+        [
+          {
+            "node": "With the photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "With the photo": {
+      "main": [
+        [
+          {
+            "node": "Tell support",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tell support": {
+      "main": [
+        [
+          {
+            "node": "Return opened",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return opened": {
+      "main": [
+        [
+          {
+            "node": "Tell the visitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order kept": {
+      "main": [
+        [
+          {
+            "node": "Tell the visitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tell the visitor": {
+      "main": [
+        [
+          {
+            "node": "Keep it in the conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not possible": {
+      "main": [
+        [
+          {
+            "node": "Keep the problem in the conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find the order": {
+      "ai_tool": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request a return": {
+      "ai_tool": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Keep it in the conversation",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Keep the problem in the conversation",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "When chat message received",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When called by the agent": {
+      "main": [
+        [
+          {
+            "node": "Return policy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return policy": {
+      "main": [
+        [
+          {
+            "node": "Sample orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample orders": {
+      "main": [
+        [
+          {
+            "node": "Matching order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
