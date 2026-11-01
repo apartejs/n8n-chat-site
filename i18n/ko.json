@@ -107,6 +107,9 @@
   "why.cards": "카드",
   "why.cards.n8n": "JSON이 텍스트로 표시",
   "why.cards.ours": "그려서 표시: 주문, 예약, 상품, 장소…",
+  "why.replies": "빠른 답장",
+  "why.replies.n8n": "블록이 코드로 표시",
+  "why.replies.ours": "답변이 제안하는 버튼을 입력창 위에 표시",
   "why.weight": "첫 로딩 용량(압축)",
   "why.languages": "언어",
   "why.languages.n8n": "영어",
@@ -202,5 +205,6 @@
   "demo.config.title": "내 설정",
   "demo.close": "닫기",
   "demo.copy": "복사",
-  "demo.copied": "복사됨"
+  "demo.copied": "복사됨",
+  "cards.replies": "같은 규칙으로 빠른 답장도 됩니다. <code>suggestions</code> 블록이 입력란 위에 버튼을 놓습니다. 예약 데모가 날짜와 시간을 이렇게 제안합니다."
 }

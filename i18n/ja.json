@@ -107,6 +107,9 @@
   "why.cards": "カード",
   "why.cards.n8n": "JSON がそのままテキストで表示",
   "why.cards.ours": "描画: 注文、予約、商品、場所…",
+  "why.replies": "クイック返信",
+  "why.replies.n8n": "ブロックがコードのまま表示",
+  "why.replies.ours": "回答が提案するボタンを入力欄の上に表示",
   "why.weight": "初回読み込みの重さ(圧縮後)",
   "why.languages": "言語",
   "why.languages.n8n": "英語",
@@ -202,5 +205,6 @@
   "demo.config.title": "あなたの設定",
   "demo.close": "閉じる",
   "demo.copy": "コピー",
-  "demo.copied": "コピーしました"
+  "demo.copied": "コピーしました",
+  "cards.replies": "同じ仕組みでクイック返信も送れます。<code>suggestions</code> ブロックで入力欄の上にボタンが並びます。予約デモは日にちと時間をこう提案します。"
 }

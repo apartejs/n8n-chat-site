@@ -1,7 +1,7 @@
 // The page's script: the demo chat and its settings, the settings as code, the ticket card,
 // "your n8n", and the code blocks coloured — all with the published packages, from jsDelivr.
 const t = JSON.parse(document.getElementById('i18n').textContent);
-const APARTE = '0.30.0';
+const APARTE = '0.31.0';
 const SHIKI = '4.5.0';
 const cdn = (path) => `https://cdn.jsdelivr.net/npm/${path}`;
 // The card kit comes from the widget's own module: one copy of aparté for the chat and the cards.

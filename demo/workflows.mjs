@@ -16,6 +16,8 @@ const SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
 const EMAIL = /[^\s@,]+@[^\s@,]+\.[a-z]{2,}/i;
 const iso = (d) => d.toISOString();
 const card = (name, data) => '\n\n```card-' + name + '\n' + JSON.stringify(data) + '\n```';
+/** Quick replies the widget shows above its input, written like a card: a ```suggestions block. */
+const replies = (list) => '\n\n```suggestions\n' + JSON.stringify(list) + '\n```';
 
 // ── The languages ───────────────────────────────────────────────────────────
 
@@ -208,16 +210,21 @@ function booking(state, text) {
     if (name) state.name = name;
     if (W.first.test(text) && !state.time) state.time = state.offered?.[0];
 
-    if (!state.day && !state.time) return [{ say: T.whichDay }];
+    if (!state.day && !state.time) {
+        // The next three open days (Monday to Friday), to click rather than type.
+        const days = [];
+        for (let d = new Date(Date.now() + DAY); days.length < 3; d = new Date(d.getTime() + DAY)) if (d.getDay() % 6 !== 0) days.push(weekdayOf(T, d));
+        return [{ say: T.whichDay + replies(days) }];
+    }
     if (!state.day) state.day = dayFrom(W, 'tuesday');
     if (!state.time) {
         state.offered = W.afternoon.test(text) ? SLOTS.slice(3) : SLOTS.slice(0, 3);
-        return [{ say: T.offer(weekdayOf(T, state.day), state.offered) }];
+        return [{ say: T.offer(weekdayOf(T, state.day), state.offered) + replies(state.offered) }];
     }
     if (!SLOTS.includes(state.time)) {
         const t = state.time;
         state.time = undefined;
-        return [{ say: T.notFree(t) }];
+        return [{ say: T.notFree(t) + replies(SLOTS) }];
     }
     if (!state.name || !state.email) return [{ say: T.needName(state.time) }];
     const [h, m] = state.time.split(':').map(Number);

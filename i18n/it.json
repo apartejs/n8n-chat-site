@@ -107,6 +107,9 @@
   "why.cards": "Schede",
   "why.cards.n8n": "il JSON come testo",
   "why.cards.ours": "disegnate: ordine, prenotazione, prodotto, luogo…",
+  "why.replies": "Risposte rapide",
+  "why.replies.n8n": "il blocco come codice",
+  "why.replies.ours": "pulsanti sopra il campo di testo, proposti dalla risposta",
   "why.weight": "Peso al primo caricamento (compresso)",
   "why.languages": "Lingue",
   "why.languages.n8n": "inglese",
@@ -202,5 +205,6 @@
   "demo.config.title": "La vostra configurazione",
   "demo.close": "Chiudi",
   "demo.copy": "Copia",
-  "demo.copied": "Copiato"
+  "demo.copied": "Copiato",
+  "cards.replies": "La stessa regola dà risposte rapide: un blocco <code>suggestions</code> mette dei pulsanti sopra il campo; così la demo di prenotazione propone giorni e orari."
 }

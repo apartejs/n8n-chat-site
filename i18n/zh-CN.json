@@ -107,6 +107,9 @@
   "why.cards": "卡片",
   "why.cards.n8n": "JSON 以文本显示",
   "why.cards.ours": "绘制出来：订单、预约、商品、地点…",
+  "why.replies": "快捷回复",
+  "why.replies.n8n": "代码块原样显示",
+  "why.replies.ours": "输入框上方的按钮，由回答提供",
   "why.weight": "首次加载体积（压缩后）",
   "why.languages": "语言",
   "why.languages.n8n": "英语",
@@ -202,5 +205,6 @@
   "demo.config.title": "你的配置",
   "demo.close": "关闭",
   "demo.copy": "复制",
-  "demo.copied": "已复制"
+  "demo.copied": "已复制",
+  "cards.replies": "同样的规则也能给出快捷回复：<code>suggestions</code> 代码块会在输入框上方放置按钮——预约演示就是这样提供日期和时间的。"
 }

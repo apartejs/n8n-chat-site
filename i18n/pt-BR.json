@@ -107,6 +107,9 @@
   "why.cards": "Cartões",
   "why.cards.n8n": "o JSON como texto",
   "why.cards.ours": "desenhados: pedido, agendamento, produto, local…",
+  "why.replies": "Respostas rápidas",
+  "why.replies.n8n": "o bloco como código",
+  "why.replies.ours": "botões acima do campo de texto, sugeridos pela resposta",
   "why.weight": "Peso no primeiro carregamento (comprimido)",
   "why.languages": "Idiomas",
   "why.languages.n8n": "inglês",
@@ -202,5 +205,6 @@
   "demo.config.title": "Sua configuração",
   "demo.close": "Fechar",
   "demo.copy": "Copiar",
-  "demo.copied": "Copiado"
+  "demo.copied": "Copiado",
+  "cards.replies": "A mesma regra dá respostas rápidas: um bloco <code>suggestions</code> coloca botões acima do campo; é assim que a demo de agendamento oferece dias e horários."
 }

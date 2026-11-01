@@ -107,6 +107,9 @@
   "why.cards": "Cards",
   "why.cards.n8n": "the JSON as text",
   "why.cards.ours": "drawn: order, booking, product, place…",
+  "why.replies": "Quick replies",
+  "why.replies.n8n": "the block as code",
+  "why.replies.ours": "buttons above the input, offered by the answer",
   "why.weight": "Weight, first load (compressed)",
   "why.languages": "Languages",
   "why.languages.n8n": "English",
@@ -202,5 +205,6 @@
   "demo.config.title": "Your configuration",
   "demo.close": "Close",
   "demo.copy": "Copy",
-  "demo.copied": "Copied"
+  "demo.copied": "Copied",
+  "cards.replies": "The same rule gives quick replies: a <code>suggestions</code> block puts buttons above the input — the booking demo offers its days and times that way."
 }

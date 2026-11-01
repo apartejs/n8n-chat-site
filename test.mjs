@@ -121,6 +121,12 @@ for (const file of readdirSync(new URL('./i18n/', import.meta.url)).filter((f) =
     check(has(r, '"kind":"booking"'), `booking/${lang}: booked with "${T.bookIt}", with its card`);
     r = await converse('booking', lang, [{ say: t['demo.booking.q3'] }]);
     check(has(r, '14:00'), `booking/${lang}: the afternoon offers afternoon times`);
+    // Quick replies: the days, then the times, to click — a suggestions block the widget shows above its input.
+    r = await converse('booking', lang, [{ say: 'hello' }]);
+    const days = JSON.parse((r.match(/```suggestions\n(.*)\n```/) ?? [])[1] ?? '[]');
+    check(days.length === 3, `booking/${lang}: the days offered as quick replies (${days.join(', ')})`);
+    r = await converse('booking', lang, [{ say: 'hello' }, { say: days[1] ?? '' }]);
+    check(r.includes('```suggestions\n["09:00","10:00","11:00"]'), `booking/${lang}: a day clicked offers its times`);
     r = await converse('buttons', lang, [{ say: 'hello' }, { click: T.buttonsYes }]);
     check(has(r, T.buttonsQ, T.buttonsBooked), `buttons/${lang}: asked with "${T.buttonsYes}", answered`);
     // The two questions the page offers for the product and place cards, as clicked.

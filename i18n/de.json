@@ -107,6 +107,9 @@
   "why.cards": "Karten",
   "why.cards.n8n": "das JSON als Text",
   "why.cards.ours": "gezeichnet: Bestellung, Buchung, Produkt, Ort…",
+  "why.replies": "Schnellantworten",
+  "why.replies.n8n": "der Block als Code",
+  "why.replies.ours": "Schaltflächen über dem Eingabefeld, von der Antwort vorgeschlagen",
   "why.weight": "Gewicht beim ersten Laden (komprimiert)",
   "why.languages": "Sprachen",
   "why.languages.n8n": "Englisch",
@@ -202,5 +205,6 @@
   "demo.config.title": "Ihre Konfiguration",
   "demo.close": "Schließen",
   "demo.copy": "Kopieren",
-  "demo.copied": "Kopiert"
+  "demo.copied": "Kopiert",
+  "cards.replies": "Dieselbe Regel gibt Schnellantworten: ein <code>suggestions</code>-Block setzt Buttons über das Eingabefeld – so bietet die Termin-Demo ihre Tage und Uhrzeiten an."
 }

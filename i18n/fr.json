@@ -107,6 +107,9 @@
   "why.cards": "Cartes",
   "why.cards.n8n": "le JSON en texte",
   "why.cards.ours": "dessinées : commande, réservation, produit, lieu…",
+  "why.replies": "Réponses rapides",
+  "why.replies.n8n": "le bloc en code",
+  "why.replies.ours": "des boutons au-dessus de la saisie, proposés par la réponse",
   "why.weight": "Poids au premier chargement (compressé)",
   "why.languages": "Langues",
   "why.languages.n8n": "anglais",
@@ -202,5 +205,6 @@
   "demo.config.title": "Votre configuration",
   "demo.close": "Fermer",
   "demo.copy": "Copier",
-  "demo.copied": "Copié"
+  "demo.copied": "Copié",
+  "cards.replies": "La même règle donne des réponses rapides : un bloc <code>suggestions</code> place des boutons au-dessus du champ — la démo de réservation propose ainsi ses jours et ses heures."
 }
