@@ -149,8 +149,14 @@ for (const file of readdirSync(new URL('./i18n/', import.meta.url)).filter((f) =
 // What a stranger can send: the server answers, and is still up after.
 {
     const net = await import('node:net');
+    const tls = await import('node:tls');
+    const target = new URL(base);
+    const secure = target.protocol === 'https:';
+    // Bytes as written, which fetch would normalise: over TLS for the site online.
     const raw = (request) => new Promise((resolve) => {
-        const socket = net.connect(new URL(base).port, '127.0.0.1', () => socket.write(request));
+        const socket = secure
+            ? tls.connect(Number(target.port || 443), target.hostname, { servername: target.hostname }, () => socket.write(request.replace('Host: x', `Host: ${target.hostname}`)))
+            : net.connect(Number(target.port), '127.0.0.1', () => socket.write(request));
         let out = '';
         socket.on('data', (d) => { out += d; });
         socket.on('close', () => resolve(out));
@@ -158,7 +164,9 @@ for (const file of readdirSync(new URL('./i18n/', import.meta.url)).filter((f) =
         setTimeout(() => { socket.destroy(); resolve(out); }, 3000);
     });
     check((await fetch(`${base}/%E0%A4%A`)).status === 400, 'a malformed escape in the path is a 400');
-    check((await raw('GET // HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n')).startsWith('HTTP/1.1 400'), 'a path that is not a URL is a 400');
+    // Behind the site's proxy, `//` arrives cleaned to `/` and is redirected: an answer either way.
+    const odd = await raw('GET // HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n');
+    check(odd.startsWith('HTTP/1.1 400') || (secure && odd.startsWith('HTTP/1.1 302')), 'a path that is not a URL is answered (400, or cleaned by the proxy)');
     await raw('GET // HTTP/1.1\r\nHost: x\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n');
     const start = await (await fetch(`${base}/webhook/shop/chat`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'sendMessage', sessionId: 'stranger', chatInput: 'hi' }) })).json();
     check(/^[0-9a-f-]{36}$/.test(start.executionId), 'an execution id cannot be guessed');
