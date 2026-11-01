@@ -4,7 +4,7 @@ const t = JSON.parse(document.getElementById('i18n').textContent);
 const main = document.querySelector('[data-workflow]');
 const id = main.dataset.workflow;
 const live = id === 'shop' || id === 'booking';
-const APARTE = '0.29.2';
+const APARTE = '0.29.3';
 const SHIKI = '4.5.0';
 const cdn = (path) => `https://cdn.jsdelivr.net/npm/${path}`;
 
