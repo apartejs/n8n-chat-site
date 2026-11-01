@@ -100,6 +100,16 @@ h1 span { color: var(--teal); }
 .swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--paper); box-shadow: 0 0 0 1px var(--line); cursor: pointer; padding: 0; }
 .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); }
 .swatch:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+/* Your own color: the browser's picker, drawn as one more swatch with a rainbow until it is used. */
+.swatch--custom { appearance: none; -webkit-appearance: none; background: conic-gradient(#e11d48, #f59e0b, #16a34a, #0ea5e9, #7c3aed, #e11d48); overflow: hidden; }
+.swatch--custom::-webkit-color-swatch-wrapper { padding: 0; }
+.swatch--custom::-webkit-color-swatch { border: 0; border-radius: 50%; opacity: 0; }
+.swatch--custom::-moz-color-swatch { border: 0; border-radius: 50%; opacity: 0; }
+.swatch--custom.is-on { box-shadow: 0 0 0 2px var(--ink); }
+/* One rule each: a list with a pseudo-element the browser does not know drops the whole rule. */
+.swatch--custom.is-on::-webkit-color-swatch { opacity: 1; }
+.swatch--custom.is-on::-moz-color-swatch { opacity: 1; }
+.accent-note { flex-basis: 100%; margin: 0; font-size: 12.5px; color: #b45309; }
 .try { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
 .made { text-align: center; font-size: 13px; color: var(--ink-2); margin: 4px 0 0; }
 .made a { color: inherit; }
@@ -124,6 +134,10 @@ h1 span { color: var(--teal); }
 .convo-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .convo { height: 470px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: var(--paper); }
 .convo--short { height: 360px; }
+/* The demo's product photos are scenes, not packshots on white: they fill the tile (the card's own knobs). */
+.aparte-n8n .aparte-product-card { --aparte-product-image-fit: cover; --aparte-product-image-inset: 0; }
+.card-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start; }
+.convo--row { height: 560px; }
 .convo :is(.aparte-n8n__header, .aparte-n8n__footer, aparte-composer, .aparte-n8n__welcome) { display: none !important; }
 
 /* Your own card */
@@ -168,7 +182,7 @@ h1 span { color: var(--teal); }
 
 @media (max-width: 960px) {
   /* minmax(0, …): a column of 1fr would grow to its widest code line and push the page sideways. */
-  .hero, .split, .own { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .hero, .split, .own, .card-row { grid-template-columns: minmax(0, 1fr); gap: 40px; }
   .grid { grid-template-columns: minmax(0, 1fr); }
   .demo, .floating-note { height: 540px; }
   /* The glow stays inside the column: past it, the page scrolls sideways on a phone. */

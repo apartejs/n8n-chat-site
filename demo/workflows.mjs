@@ -8,7 +8,7 @@
  * for an approval, with what follows each answer. They answer in the page's language
  * (`demo/texts/<lang>.mjs`), as the real workflows answer in the visitor's.
  */
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const DAY = 86400000;
@@ -22,7 +22,10 @@ const card = (name, data) => '\n\n```card-' + name + '\n' + JSON.stringify(data)
 const TEXTS = {};
 const dir = fileURLToPath(new URL('./texts/', import.meta.url));
 for (const file of readdirSync(dir).filter((f) => f.endsWith('.mjs'))) {
-    TEXTS[file.slice(0, -4)] = (await import(new URL(`./texts/${file}`, import.meta.url))).default;
+    const lang = file.slice(0, -4);
+    TEXTS[lang] = (await import(new URL(`./texts/${file}`, import.meta.url))).default;
+    // The studio's name as the page names it in that language (its chat's title).
+    TEXTS[lang].studio = JSON.parse(readFileSync(new URL(`../i18n/${lang}.json`, import.meta.url), 'utf8'))['demo.booking.title'];
 }
 
 /** A language's texts, English for any key it lacks — merged once per language. */
@@ -70,6 +73,34 @@ const ORDERS = {
         email: 'bob@example.com', status: 'processing', placed: -1, shipped: null,
         items: [{ name: 'Wool coat', quantity: 1, total: '120.00' }], total: '120.00',
     },
+};
+
+// The sample products of the downloadable workflow, as its Code node turns them into a card.
+const PRODUCTS = [
+    { id: '11', title: 'Linen shirt', price: '49.00', availability: 'in-stock', options: ['S', 'M', 'L', 'XL'], rating: 4.6, reviewCount: 38, words: ['shirt', 'linen'] },
+    { id: '12', title: 'Oxford shirt', price: '39.00', compareAtPrice: '55.00', availability: 'in-stock', options: ['M', 'L'], rating: 4.3, reviewCount: 12, words: ['shirt', 'oxford'] },
+    { id: '13', title: 'Wool coat', price: '120.00', availability: 'preorder', options: ['S', 'M', 'L'], rating: 4.8, reviewCount: 21, words: ['coat', 'wool'] },
+    { id: '14', title: 'Canvas tote bag', price: '19.00', availability: 'in-stock', options: [], rating: 4.5, reviewCount: 64, words: ['bag'] },
+    { id: '15', title: 'Leather belt', price: '35.00', availability: 'out-of-stock', options: ['90 cm', '100 cm'], rating: 4.1, reviewCount: 9, words: ['belt'] },
+];
+
+/** The products a message names, matched like the workflow's search: the most words wins. */
+function productsIn(W, text) {
+    const said = ['shirt', 'linen', 'oxford', 'coat', 'wool', 'bag', 'belt'].filter((w) => W[w]?.test(text));
+    const score = (p) => p.words.filter((w) => said.includes(w)).length;
+    const best = Math.max(0, ...PRODUCTS.map(score));
+    return best ? PRODUCTS.filter((p) => score(p) === best) : [];
+}
+
+/** Where the product photos are served: this site (SITE_ORIGIN to try them on another host). */
+const ORIGIN = process.env.SITE_ORIGIN ?? 'https://n8n-chat.apartejs.dev';
+const productCard = (T, found) => {
+    const list = found.map(({ words, title, ...p }) => {
+        const slug = title.toLowerCase().replace(/ /g, '-');
+        const name = T.productNames?.[title] ?? title;
+        return { ...p, title: name, image: { src: `${ORIGIN}/products/${slug}.jpg`, alt: name }, currency: 'EUR', url: `https://example.com/product/${slug}` };
+    });
+    return card('product', list.length === 1 ? list[0] : list);
 };
 
 const orderCard = (number) => {
@@ -131,6 +162,8 @@ function shop(state, text) {
             },
         ];
     }
+    const found = number ? [] : productsIn(W, text);
+    if (found.length) return [{ say: T.found + productCard(T, found) }];
     if (W.order.test(text)) return [{ say: T.lookUp }];
     return [{ say: T.offTopic }];
 }
@@ -150,9 +183,21 @@ function dayFrom(W, text, fallback) {
     return d;
 }
 
+/** The studio on the Paris clock, as the workflow's Settings describe it. */
+function placeCard(T) {
+    const paris = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', timeZoneName: 'shortOffset' }).formatToParts(new Date())
+        .find((x) => x.type === 'timeZoneName').value.match(/GMT([+-]\d+)?(?::(\d+))?/);
+    const utcOffset = (Number(paris?.[1] ?? 0) * 60) + Math.sign(Number(paris?.[1] ?? 0)) * Number(paris?.[2] ?? 0);
+    return card('place', {
+        name: T.studio, address: '12 rue de la Paix, 75002 Paris', phone: '+33 1 23 45 67 89', coordinates: { lat: 48.8686, lng: 2.331 },
+        hours: [1, 2, 3, 4, 5].map((day) => ({ day, open: '09:00', close: '17:00' })), utcOffset,
+    });
+}
+
 function booking(state, text) {
     const T = textsOf(state);
     const W = wordsOf(T);
+    if (W.where.test(text)) return [{ say: T.whereWeAre + placeCard(T) }];
     const day = dayFrom(W, text, state.day);
     if (day) state.day = day;
     const time = (text.match(/\b([01]?\d|2[0-3])\s?[:h時시点]\s?([0-5]\d)?/) ?? []);
@@ -190,7 +235,7 @@ function booking(state, text) {
                     say: approved
                         ? T.booked(when, who.name) + card('order', {
                             kind: 'booking', status: 'confirmed', items: [{ title: T.service }],
-                            booking: { start: localTime(start, h * 60 + m), end: localTime(start, h * 60 + m + 30), location: 'Demo studio, 12 rue de la Paix' },
+                            booking: { start: localTime(start, h * 60 + m), end: localTime(start, h * 60 + m + 30), location: `${T.studio}, 12 rue de la Paix, 75002 Paris` },
                         })
                         : T.otherTime,
                 }],

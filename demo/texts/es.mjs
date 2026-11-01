@@ -20,7 +20,7 @@ export default {
     keepOrder: 'Conservar mi pedido',
     returnOpen: (n, email) => `Su devolución del pedido ${n} está abierta. Le escribiremos a ${email} para explicarle cómo devolvernos los artículos.`,
     kept: 'De acuerdo, su pedido se queda como está. ¿Algo más?',
-    offTopic: 'Solo puedo ayudarle con pedidos y devoluciones. Para cualquier otra cosa, escriba a support@example.com.',
+    offTopic: 'Solo puedo ayudarle con productos, pedidos y devoluciones. Para cualquier otra cosa, escriba a support@example.com.',
     defaultReason: 'no le queda bien',
     whichDay: 'Puedo reservarle una cita de 30 minutos, de lunes a viernes, de 9:00 a 17:00. ¿Qué día le viene bien?',
     offer: (day, times) => `${day} está bien. ¿Prefiere ${times.slice(0, -1).join(', ')} o ${times.at(-1)}? Indíqueme también su nombre y su dirección de correo electrónico.`,
@@ -42,12 +42,23 @@ export default {
     buttonsDeclined: 'De acuerdo, no se ha reservado nada. ¿Algo más?',
     filesNone: 'Adjunte un archivo con el clip y le diré qué he recibido.',
     filesGot: (list) => `He recibido ${list}. Un workflow real los leería ahora: un PDF sobre el que responder, la foto de un paquete dañado, un CV.`,
+    // The shop's products, named on their card in this language; the answer that shows them.
+    productNames: { 'Linen shirt': 'Camisa de lino', 'Oxford shirt': 'Camisa Oxford', 'Wool coat': 'Abrigo de lana', 'Canvas tote bag': 'Bolsa tote de lona', 'Leather belt': 'Cinturón de cuero' },
+    found: 'Esto es lo que tenemos. Las tallas, el precio y el stock están en la ficha.',
+    // Booking: where the studio is, shown with its card.
+    whereWeAre: 'Estamos en 12 rue de la Paix, en París, y abrimos de lunes a viernes de 9:00 a 17:00.',
     words: {
         returning: String.raw`devol|reembols|(enviar|mandar)(lo|la)? de vuelta|\brot[oa]\b|(demasiado|muy) (peque|grande)`,
         reason: String.raw`(demasiado|muy) (pequeñ[oa]|grande)|me queda (pequeñ|grande)[oa]|\brot[oa]\b|dañad[oa]|talla (equivocada|incorrecta)|cambié de opinión`,
         order: String.raw`pedido|paquete|envío|entrega|d[oó]nde`,
         shirt: String.raw`camisa|\blino\b`,
         bag: String.raw`tote|bolsa|bolso`,
+        linen: String.raw`\blino\b`,
+        oxford: String.raw`oxford`,
+        coat: String.raw`abrigo|chaqueta`,
+        wool: String.raw`lana`,
+        belt: String.raw`cintur`,
+        where: String.raw`d[oó]nde|direcci[oó]n|abiert|horario`,
         afternoon: String.raw`tarde`,
         // "mañana" also means "morning": not after "la", "esta" or "de".
         tomorrow: String.raw`(?<!la |esta |de )ma[ñn]ana`,

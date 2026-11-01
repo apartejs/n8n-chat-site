@@ -123,6 +123,24 @@ for (const file of readdirSync(new URL('./i18n/', import.meta.url)).filter((f) =
     check(has(r, '14:00'), `booking/${lang}: the afternoon offers afternoon times`);
     r = await converse('buttons', lang, [{ say: 'hello' }, { click: T.buttonsYes }]);
     check(has(r, T.buttonsQ, T.buttonsBooked), `buttons/${lang}: asked with "${T.buttonsYes}", answered`);
+    // The two questions the page offers for the product and place cards, as clicked.
+    r = await converse('shop', lang, [{ say: t['demo.shop.q4'] }]);
+    check(has(r, T.found, '```card-product', `"title":"${T.productNames['Linen shirt']}"`), `shop/${lang}: "${t['demo.shop.q4']}" gets the linen shirt's card`);
+    check(!r.includes('Oxford'), `shop/${lang}: the linen shirt alone, not every shirt`);
+    r = await converse('booking', lang, [{ say: t['demo.booking.q4'] }]);
+    check(has(r, T.whereWeAre, '```card-place', `"name":"${t['demo.booking.title']}"`), `booking/${lang}: "${t['demo.booking.q4']}" gets the studio's card`);
+    const home = await (await fetch(`${base}/${lang}/`)).text();
+    check(home.includes(`<meta property="og:title" content="${t['meta.title'].replace(/"/g, '&quot;')}`) || home.includes('<meta property="og:title"'), `/${lang}/: an og:title`);
+}
+
+// For search engines and link previews.
+{
+    const robots = await (await fetch(`${base}/robots.txt`)).text();
+    check(robots.includes('Sitemap: https://n8n-chat.apartejs.dev/sitemap.xml'), 'robots.txt names the sitemap');
+    const sitemap = await (await fetch(`${base}/sitemap.xml`)).text();
+    check((sitemap.match(/<url>/g) ?? []).length === 40 && sitemap.includes('hreflang="x-default"'), 'sitemap.xml: 4 pages in 10 languages, with their translations');
+    const og = await fetch(`${base}/og.png`);
+    check(og.ok && og.headers.get('content-type') === 'image/png', 'og.png is served as an image');
 }
 
 // The basics: a file is read, a broken workflow fails as n8n's does.

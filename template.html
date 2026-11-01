@@ -27,9 +27,21 @@
       <div class="controls">
         <label>{{demo.language}} <select id="chat-lang"></select></label>
         <span class="swatches" role="group" aria-label="{{demo.colour}}" id="colours">{{demo.colour}}</span>
+        <div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.surface}}" id="surface-tabs">
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-surface="n8n">{{demo.surface.n8n}}</button>
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="neutral">{{demo.surface.neutral}}</button>
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="warm">{{demo.surface.warm}}</button>
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="tinted">{{demo.surface.tinted}}</button>
+        </div>
+        <p class="accent-note" id="accent-note" role="status" hidden></p>
         <div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.where}}" id="mode-tabs">
           <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-mode="embedded">{{demo.embedded}}</button>
           <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-mode="window">{{demo.floating}}</button>
+        </div>
+        <div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.scheme}}" id="scheme-tabs">
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-scheme="light">{{demo.scheme.light}}</button>
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-scheme="dark">{{demo.scheme.dark}}</button>
+          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-scheme="auto">{{demo.scheme.auto}}</button>
         </div>
       </div>
       <div class="try" id="try"><span>{{demo.try}}</span></div>
@@ -43,7 +55,7 @@
         <h2>{{code.title}}</h2>
         <p class="sub">{{code.sub}}</p>
       </div>
-      <pre class="code" data-lang="js" id="settings-code"></pre>
+      <pre class="code" data-lang="js" id="settings-code">{{settings.code}}</pre>
     </div>
   </section>
 
@@ -108,6 +120,14 @@
           <p class="label">{{cards.own.result}}</p>
           <div class="convo" id="convo-order" aria-label="{{cards.example.label}}"></div>
         </div>
+      </div>
+
+      <h3 class="own-title">{{cards.more.title}}</h3>
+      <p class="sub">{{cards.more.lead}}</p>
+      <div class="card-row">
+        <div class="convo-side"><p class="label">{{cards.more.product.label}}</p><div class="convo convo--row" id="convo-product" aria-label="{{cards.example.label}}"></div></div>
+        <div class="convo-side"><p class="label">{{cards.more.booking.label}}</p><div class="convo convo--row" id="convo-booking" aria-label="{{cards.example.label}}"></div></div>
+        <div class="convo-side"><p class="label">{{cards.more.place.label}}</p><div class="convo convo--row" id="convo-place" aria-label="{{cards.example.label}}"></div></div>
       </div>
 
       <h3 class="own-title">{{cards.own.title}}</h3>
@@ -250,12 +270,12 @@ createChat({
           <thead><tr><th scope="col"><span class="visually-hidden">{{why.feature}}</span></th><th scope="col">@n8n/chat</th><th scope="col">aparté chat for n8n</th></tr></thead>
           <tbody>
             <tr><th scope="row">{{why.cards}}</th><td>{{why.cards.n8n}}</td><td>{{why.cards.ours}}</td></tr>
-            <tr><th scope="row">{{why.weight}}</th><td>~471 KB</td><td>~143 KB</td></tr>
+            <tr><th scope="row">{{why.weight}}</th><td>{{why.weight.n8n}}</td><td>{{proof.weight}}</td></tr>
             <tr><th scope="row">{{why.languages}}</th><td>{{why.languages.n8n}}</td><td>{{why.languages.ours}}</td></tr>
             <tr><th scope="row">{{why.a11y}}</th><td>{{why.a11y.n8n}}</td><td>{{why.a11y.ours}}</td></tr>
             <tr><th scope="row">{{why.contrast}}</th><td>2.55:1</td><td>4.70:1 (WCAG AA)</td></tr>
             <tr><th scope="row">{{why.dark}}</th><td>—</td><td>{{why.dark.ours}}</td></tr>
-            <tr><th scope="row">{{why.embedded}}</th><td>"fullscreen"</td><td><code>mode: 'embedded'</code></td></tr>
+            <tr><th scope="row">{{why.embedded}}</th><td><code>mode: 'fullscreen'</code></td><td><code>mode: 'embedded'</code></td></tr>
             <tr><th scope="row">{{why.drive}}</th><td>—</td><td><code>open</code>, <code>send</code>, <code>reset</code>, <code>setDisabled</code>…</td></tr>
             <tr><th scope="row">{{why.extend}}</th><td>—</td><td><code>setup(config)</code></td></tr>
             <tr><th scope="row">{{why.license}}</th><td>Sustainable Use</td><td>MIT</td></tr>

@@ -1,5 +1,5 @@
 {
-  "name": "Answer order status and open returns from your shop's website chat",
+  "name": "Answer product questions, order status and returns in your shop's website chat",
   "nodes": [
     {
       "id": "5b095b09-0000-4000-8000-000000000001",
@@ -24,7 +24,7 @@
       "webhookId": "5b095b09-d0c5-4a00-8000-000000000001"
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000006",
+      "id": "5b095b09-0000-4000-8000-000000000007",
       "name": "Settings",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -55,6 +55,12 @@
             },
             {
               "id": "5b095b09-0000-4000-8000-000000000005",
+              "name": "currency",
+              "value": "EUR",
+              "type": "string"
+            },
+            {
+              "id": "5b095b09-0000-4000-8000-000000000006",
               "name": "richCards",
               "value": true,
               "type": "boolean"
@@ -65,7 +71,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000007",
+      "id": "5b095b09-0000-4000-8000-000000000008",
       "name": "Returns table",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -111,7 +117,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000008",
+      "id": "5b095b09-0000-4000-8000-000000000009",
       "name": "Back to the message",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -126,7 +132,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000009",
+      "id": "5b095b09-0000-4000-8000-000000000010",
       "name": "Answer",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
@@ -138,13 +144,13 @@
         "promptType": "define",
         "text": "={{ ($('When chat message received').item.json.chatInput ?? '').trim() || (($('When chat message received').item.json.files ?? []).length ? 'Here is the photo.' : 'Hello') }}",
         "options": {
-          "systemMessage": "=You are the customer assistant of {{ $('Settings').item.json.shopName }}. You can tell a visitor where their order is, and open a return.\n\nOrders:\n- To look up an order you need its number and the email address it was placed with. Call Find_the_order. Never give any order detail without it.\n- Tell the status, the items and the dates the tool returns. Do not invent tracking numbers or delivery dates.\n\nReturns:\n- Only what Find_the_order says can be returned can be returned.\n- Ask which items and why. If an item arrived damaged, ask the visitor to attach a photo of it to their next message.\n- Then call Request_a_return with the order number, the email, the items and the reason. Never say the return is open or processed: the visitor confirms with a button, so just tell them to confirm with the button below.\n\nFor anything else (products, sizes, shipping costs), say you can only help with orders and returns, and give the support address {{ $('Settings').item.json.supportEmail }}.\nAnswer in the visitor's language, in one to three short sentences.",
+          "systemMessage": "=You are the customer assistant of {{ $('Settings').item.json.shopName }}. You can find products, tell a visitor where their order is, and open a return.\n\nProducts:\n- When the visitor asks about a product (price, sizes, whether it is in stock), call Find_products with one or two keywords in English, whatever the visitor's language: \"manteaux\" is \"coat\", \"camisa\" is \"shirt\".\n- Answer from what it returns, in one sentence: the products are shown as cards under your answer, so do not list every detail. If it returns nothing, say so.\n\nOrders:\n- To look up an order you need its number and the email address it was placed with. Call Find_the_order. Never give any order detail without it.\n- Tell the status, the items and the dates the tool returns. Do not invent tracking numbers or delivery dates.\n\nReturns:\n- Only what Find_the_order says can be returned can be returned.\n- Ask which items and why. If an item arrived damaged, ask the visitor to attach a photo of it to their next message.\n- Then call Request_a_return with the order number, the email, the items and the reason. Never say the return is open or processed: the visitor confirms with a button, so just tell them to confirm with the button below.\n\nFor anything else (shipping costs, payment, your opinion), say you can only help with products, orders and returns, and give the support address {{ $('Settings').item.json.supportEmail }}.\nAnswer in the visitor's language, in one to three short sentences.",
           "returnIntermediateSteps": true
         }
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000010",
+      "id": "5b095b09-0000-4000-8000-000000000011",
       "name": "Chat model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
@@ -165,7 +171,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000011",
+      "id": "5b095b09-0000-4000-8000-000000000012",
       "name": "Conversation memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
@@ -179,7 +185,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000012",
+      "id": "5b095b09-0000-4000-8000-000000000013",
       "name": "Find the order",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
@@ -229,7 +235,25 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000013",
+      "id": "5b095b09-0000-4000-8000-000000000014",
+      "name": "Find products",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1260,
+        540
+      ],
+      "parameters": {
+        "description": "Search the shop's products. \"search\" is one or two keywords in English, translated from the visitor's words (\"manteaux\" → \"coat\"). Returns the matching products with their price, sizes and stock.",
+        "language": "javaScript",
+        "jsCode": "// Sample products, shaped like WooCommerce's (photos: Unsplash License). Replace this tool with a WooCommerce Tool (Product → Get Many, search from the AI).\nconst products = [\n  { id: 11, name: 'Linen shirt', price: '49.00', regular_price: '49.00', sale_price: '', stock_status: 'instock', categories: [{ name: 'Shirts' }],\n    attributes: [{ name: 'Size', options: ['S', 'M', 'L', 'XL'] }], average_rating: '4.6', rating_count: 38, permalink: 'https://example.com/product/linen-shirt',\n    images: [{ src: 'https://n8n-chat.apartejs.dev/products/linen-shirt.jpg', alt: 'Linen shirt' }],\n    short_description: 'Washed linen, relaxed fit. Machine washable.' },\n  { id: 12, name: 'Oxford shirt', price: '39.00', regular_price: '55.00', sale_price: '39.00', stock_status: 'instock', categories: [{ name: 'Shirts' }],\n    attributes: [{ name: 'Size', options: ['M', 'L'] }], average_rating: '4.3', rating_count: 12, permalink: 'https://example.com/product/oxford-shirt',\n    images: [{ src: 'https://n8n-chat.apartejs.dev/products/oxford-shirt.jpg', alt: 'Oxford shirt' }],\n    short_description: 'Cotton oxford, button-down collar.' },\n  { id: 13, name: 'Wool coat', price: '120.00', regular_price: '120.00', sale_price: '', stock_status: 'onbackorder', categories: [{ name: 'Coats' }],\n    attributes: [{ name: 'Size', options: ['S', 'M', 'L'] }], average_rating: '4.8', rating_count: 21, permalink: 'https://example.com/product/wool-coat',\n    images: [{ src: 'https://n8n-chat.apartejs.dev/products/wool-coat.jpg', alt: 'Wool coat' }],\n    short_description: 'Felted wool, lined. Back in stock in two weeks.' },\n  { id: 14, name: 'Canvas tote bag', price: '19.00', regular_price: '19.00', sale_price: '', stock_status: 'instock', categories: [{ name: 'Bags' }],\n    attributes: [], average_rating: '4.5', rating_count: 64, permalink: 'https://example.com/product/canvas-tote-bag',\n    images: [{ src: 'https://n8n-chat.apartejs.dev/products/canvas-tote-bag.jpg', alt: 'Canvas tote bag' }],\n    short_description: 'Heavy canvas, inside pocket.' },\n  { id: 15, name: 'Leather belt', price: '35.00', regular_price: '35.00', sale_price: '', stock_status: 'outofstock', categories: [{ name: 'Accessories' }],\n    attributes: [{ name: 'Length', options: ['90 cm', '100 cm'] }], average_rating: '4.1', rating_count: 9, permalink: 'https://example.com/product/leather-belt',\n    images: [{ src: 'https://n8n-chat.apartejs.dev/products/leather-belt.jpg', alt: 'Leather belt' }],\n    short_description: 'Full-grain leather, brass buckle.' },\n];\nconst words = String(query.search ?? query).toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2).map((w) => w.replace(/s$/, ''));\n// The products matching the most keywords: \"linen shirt\" is the linen shirt, \"shirt\" every shirt.\nconst score = (p) => words.filter((w) => (p.name + ' ' + p.categories.map((c) => c.name).join(' ')).toLowerCase().includes(w)).length;\nconst best = Math.max(0, ...products.map(score));\n// Nothing found: name what the shop sells, so the agent can search again with the shop's own words.\nif (!best) return 'No product matches \"' + (query.search ?? query) + '\". This shop sells: ' + products.map((p) => p.name).join(', ') + '. Search again with one of these words, or say the shop does not sell it.';\nreturn JSON.stringify(products.filter((p) => score(p) === best).slice(0, 4));",
+        "specifyInputSchema": true,
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"search\": \"linen shirt\"\n}"
+      }
+    },
+    {
+      "id": "5b095b09-0000-4000-8000-000000000015",
       "name": "Request a return",
       "type": "@n8n/n8n-nodes-langchain.toolCode",
       "typeVersion": 1.3,
@@ -247,7 +271,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000014",
+      "id": "5b095b09-0000-4000-8000-000000000016",
       "name": "Return asked?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -256,11 +280,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const out = $input.first().json;\nconst call = (out.intermediateSteps ?? []).filter((s) => s.action?.tool === 'Request_a_return').pop();\nconst t = $('When chat message received').first().json;\n// richCards: the order the agent looked up, drawn as a card by the aparté widget (a code block elsewhere).\nlet output = out.output;\nconst found = (out.intermediateSteps ?? []).filter((s) => s.action?.tool === 'Find_the_order').pop();\nif ($('Settings').first().json.richCards && found) {\n  let seen = found.observation;\n  try { seen = typeof seen === 'string' ? JSON.parse(seen) : seen; } catch { seen = null; }\n  const order = [].concat(seen ?? []).map((o) => o?.json ?? o).find((o) => o?.found && o.card);\n  if (order) output += '\\n\\n\\u0060\\u0060\\u0060card-order\\n' + JSON.stringify(order.card) + '\\n\\u0060\\u0060\\u0060';\n}\nconst base = { sessionId: t.sessionId, output };\nif (!call) return [{ json: { ...base, asked: false } }];\nconst r = call.action.toolInput ?? {};\nconst photo = (t.files ?? [])[0]?.fileName ?? '';\nreturn [{ json: { ...base, asked: true,\n  orderNumber: String(r.orderNumber ?? '').replace(/[^0-9A-Za-z-]/g, ''),\n  email: String(r.email ?? '').trim(),\n  items: String(r.items ?? '').trim(),\n  reason: String(r.reason ?? '').trim(),\n  photo,\n} }];"
+        "jsCode": "const out = $input.first().json;\nconst call = (out.intermediateSteps ?? []).filter((s) => s.action?.tool === 'Request_a_return').pop();\nconst t = $('When chat message received').first().json;\n// richCards: the order the agent looked up, drawn as a card by the aparté widget (a code block elsewhere).\nlet output = out.output;\nconst found = (out.intermediateSteps ?? []).filter((s) => s.action?.tool === 'Find_the_order').pop();\nif ($('Settings').first().json.richCards && found) {\n  let seen = found.observation;\n  try { seen = typeof seen === 'string' ? JSON.parse(seen) : seen; } catch { seen = null; }\n  const order = [].concat(seen ?? []).map((o) => o?.json ?? o).find((o) => o?.found && o.card);\n  if (order) output += '\\n\\n\\u0060\\u0060\\u0060card-order\\n' + JSON.stringify(order.card) + '\\n\\u0060\\u0060\\u0060';\n}\n// The products the agent found, as WooCommerce returns them.\nconst search = (out.intermediateSteps ?? []).filter((s) => s.action?.tool === 'Find_products').pop();\nif ($('Settings').first().json.richCards && search) {\n  let seen = search.observation;\n  try { seen = typeof seen === 'string' ? JSON.parse(seen) : seen; } catch { seen = null; }\n  // A Code tool's answer comes back wrapped, as [{ response: '<its JSON>' }]; a WooCommerce Tool's as the products.\n  const unwrap = (x) => { if (typeof x?.response !== 'string') return x?.json ?? x; try { return JSON.parse(x.response); } catch { return null; } };\n  const stock = { instock: 'in-stock', outofstock: 'out-of-stock', onbackorder: 'preorder' };\n  const products = [].concat(seen ?? []).flatMap(unwrap).filter((p) => p?.name).slice(0, 4).map((p) => ({\n    id: String(p.id), title: p.name, price: p.price, currency: $('Settings').first().json.currency,\n    compareAtPrice: p.sale_price ? p.regular_price : undefined,\n    availability: stock[p.stock_status] ?? p.stock_status,\n    image: p.images?.[0]?.src, url: p.permalink,\n    options: (p.attributes ?? []).flatMap((a) => a.options ?? []).slice(0, 6),\n    rating: Number(p.average_rating) || undefined, reviewCount: p.rating_count || undefined,\n  }));\n  if (products.length) output += '\\n\\n\\u0060\\u0060\\u0060card-product\\n' + JSON.stringify(products.length === 1 ? products[0] : products) + '\\n\\u0060\\u0060\\u0060';\n}\nconst base = { sessionId: t.sessionId, output };\nif (!call) return [{ json: { ...base, asked: false } }];\nconst r = call.action.toolInput ?? {};\nconst photo = (t.files ?? [])[0]?.fileName ?? '';\nreturn [{ json: { ...base, asked: true,\n  orderNumber: String(r.orderNumber ?? '').replace(/[^0-9A-Za-z-]/g, ''),\n  email: String(r.email ?? '').trim(),\n  items: String(r.items ?? '').trim(),\n  reason: String(r.reason ?? '').trim(),\n  photo,\n} }];"
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000016",
+      "id": "5b095b09-0000-4000-8000-000000000018",
       "name": "Asked?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -278,7 +302,7 @@
           },
           "conditions": [
             {
-              "id": "5b095b09-0000-4000-8000-000000000015",
+              "id": "5b095b09-0000-4000-8000-000000000017",
               "leftValue": "={{ $json.asked }}",
               "rightValue": "",
               "operator": {
@@ -295,7 +319,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000017",
+      "id": "5b095b09-0000-4000-8000-000000000019",
       "name": "Reply",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -309,7 +333,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000018",
+      "id": "5b095b09-0000-4000-8000-000000000020",
       "name": "Check the order again",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
@@ -361,7 +385,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000019",
+      "id": "5b095b09-0000-4000-8000-000000000021",
       "name": "Return already open?",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -392,7 +416,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000020",
+      "id": "5b095b09-0000-4000-8000-000000000022",
       "name": "Can it be returned?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -405,7 +429,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000022",
+      "id": "5b095b09-0000-4000-8000-000000000024",
       "name": "Returnable?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -423,7 +447,7 @@
           },
           "conditions": [
             {
-              "id": "5b095b09-0000-4000-8000-000000000021",
+              "id": "5b095b09-0000-4000-8000-000000000023",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -440,7 +464,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000023",
+      "id": "5b095b09-0000-4000-8000-000000000025",
       "name": "Before the buttons",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -454,7 +478,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000024",
+      "id": "5b095b09-0000-4000-8000-000000000026",
       "name": "Confirm with buttons",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -477,7 +501,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000025",
+      "id": "5b095b09-0000-4000-8000-000000000027",
       "name": "Not possible",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -491,7 +515,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000027",
+      "id": "5b095b09-0000-4000-8000-000000000029",
       "name": "Confirmed?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -509,7 +533,7 @@
           },
           "conditions": [
             {
-              "id": "5b095b09-0000-4000-8000-000000000026",
+              "id": "5b095b09-0000-4000-8000-000000000028",
               "leftValue": "={{ $json.data.approved }}",
               "rightValue": "",
               "operator": {
@@ -526,7 +550,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000028",
+      "id": "5b095b09-0000-4000-8000-000000000030",
       "name": "Save the return",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -622,7 +646,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000029",
+      "id": "5b095b09-0000-4000-8000-000000000031",
       "name": "With the photo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -635,7 +659,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000030",
+      "id": "5b095b09-0000-4000-8000-000000000032",
       "name": "Tell support",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
@@ -658,7 +682,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000032",
+      "id": "5b095b09-0000-4000-8000-000000000034",
       "name": "Return opened",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -670,7 +694,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "5b095b09-0000-4000-8000-000000000031",
+              "id": "5b095b09-0000-4000-8000-000000000033",
               "name": "reply",
               "value": "={{ 'Your return for order ' + $('Can it be returned?').item.json.order.number + ' is open. We will email you at ' + $('Can it be returned?').item.json.email + ' with how to send the items back.' }}",
               "type": "string"
@@ -681,7 +705,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000034",
+      "id": "5b095b09-0000-4000-8000-000000000036",
       "name": "Order kept",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -693,7 +717,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "5b095b09-0000-4000-8000-000000000033",
+              "id": "5b095b09-0000-4000-8000-000000000035",
               "name": "reply",
               "value": "All right, your order stays as it is. Anything else?",
               "type": "string"
@@ -704,7 +728,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000035",
+      "id": "5b095b09-0000-4000-8000-000000000037",
       "name": "Tell the visitor",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -718,7 +742,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000036",
+      "id": "5b095b09-0000-4000-8000-000000000038",
       "name": "Keep it in the conversation",
       "type": "@n8n/n8n-nodes-langchain.memoryManager",
       "typeVersion": 1.1,
@@ -743,7 +767,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000037",
+      "id": "5b095b09-0000-4000-8000-000000000039",
       "name": "Keep the problem in the conversation",
       "type": "@n8n/n8n-nodes-langchain.memoryManager",
       "typeVersion": 1.1,
@@ -769,7 +793,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000038",
+      "id": "5b095b09-0000-4000-8000-000000000040",
       "name": "When called by the agent",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -792,7 +816,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000040",
+      "id": "5b095b09-0000-4000-8000-000000000042",
       "name": "Return policy",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -804,7 +828,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "5b095b09-0000-4000-8000-000000000039",
+              "id": "5b095b09-0000-4000-8000-000000000041",
               "name": "returnDays",
               "value": 30,
               "type": "number"
@@ -815,7 +839,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000041",
+      "id": "5b095b09-0000-4000-8000-000000000043",
       "name": "Sample orders",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -828,7 +852,7 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000042",
+      "id": "5b095b09-0000-4000-8000-000000000044",
       "name": "Matching order",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -841,8 +865,8 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000043",
-      "name": "Note 43",
+      "id": "5b095b09-0000-4000-8000-000000000045",
+      "name": "Note 45",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -850,15 +874,15 @@
         0
       ],
       "parameters": {
-        "content": "## Order status and returns in your shop's website chat\n\nA visitor asks in the chat on your shop where their order is, or wants to return something. The agent looks the order up by **number and email**, tells its status, and for a return asks which items and why, with a photo if the item is damaged. The visitor **confirms with a button**, the return is saved in a data table, and your support team gets an email.\n\n### Requirements\n- An n8n instance the visitor's browser can reach on a public URL, with data tables. Tested on n8n 2.45.7.\n- An OpenAI API key, or credentials for any other chat model n8n supports that can call tools.\n- An SMTP account to email your support team, or swap **Tell support** for Gmail, Outlook or Slack.\n\n### Set up\n1. Open **Settings**: your shop's name, the support address, the sender address. `richCards` adds a card under the answer (the order, the booking) as a code block: the aparté chat widget for n8n draws it, n8n's own chat shows it as code. Turn it off for n8n's chat.\n2. Add your credentials to **Chat model** and **Tell support**.\n3. Connect your orders (see the note under the workflow), and set the return window in **Return policy**.\n4. Open **When chat message received**, put your site in **Allowed Origins**, then **publish** the workflow and copy the production URL that ends in `/chat`.\n5. Paste this in your page, with your URL:\n\n```html\n<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.3.0/dist/style.css\">\n<script type=\"module\">\n  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.3.0/dist/cdn/n8n-chat.js';\n  createChat({ webhookUrl: 'YOUR_PRODUCTION_URL', allowFileUploads: true });\n</script>\n```\n\nThat widget is [@aparte/n8n-chat](https://github.com/apartejs/n8n-chat) (MIT): it shows the confirm buttons inside the conversation, lets the visitor drop or paste a photo, and keeps the conversation after a reload. n8n's own widget (`@n8n/chat`) works with this workflow too.",
+        "content": "## Products, order status and returns in your shop's website chat\n\nA visitor asks in the chat on your shop about a product, where their order is, or wants to return something. Products come back as **cards** with their price, sizes and stock. The agent looks the order up by **number and email**, tells its status, and for a return asks which items and why, with a photo if the item is damaged. The visitor **confirms with a button**, the return is saved in a data table, and your support team gets an email.\n\n### Requirements\n- An n8n instance the visitor's browser can reach on a public URL, with data tables. Tested on n8n 2.45.7.\n- An OpenAI API key, or credentials for any other chat model n8n supports that can call tools.\n- An SMTP account to email your support team, or swap **Tell support** for Gmail, Outlook or Slack.\n\n### Set up\n1. Open **Settings**: your shop's name, the support address, the sender address, your currency. `richCards` adds a card under the answer (the products, the order) as a code block: the aparté chat widget for n8n draws it, n8n's own chat shows it as code. Turn it off for n8n's chat.\n2. Add your credentials to **Chat model** and **Tell support**.\n3. Connect your products and orders (see the note under the workflow), and set the return window in **Return policy**.\n4. Open **When chat message received**, put your site in **Allowed Origins**, then **publish** the workflow and copy the production URL that ends in `/chat`.\n5. Paste this in your page, with your URL:\n\n```html\n<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.3.1/dist/style.css\">\n<script type=\"module\">\n  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.3.1/dist/cdn/n8n-chat.js';\n  createChat({ webhookUrl: 'YOUR_PRODUCTION_URL', allowFileUploads: true });\n</script>\n```\n\nThat widget is [@aparte/n8n-chat](https://github.com/apartejs/n8n-chat) (MIT): it shows the confirm buttons inside the conversation, lets the visitor drop or paste a photo, and keeps the conversation after a reload. n8n's own widget (`@n8n/chat`) works with this workflow too.",
         "width": 620,
         "height": 1160,
         "color": 4
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000044",
-      "name": "Note 44",
+      "id": "5b095b09-0000-4000-8000-000000000046",
+      "name": "Note 46",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -873,8 +897,8 @@
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000045",
-      "name": "Note 45",
+      "id": "5b095b09-0000-4000-8000-000000000047",
+      "name": "Note 47",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -882,15 +906,15 @@
         760
       ],
       "parameters": {
-        "content": "### Connect your orders\n**Sample orders** holds five test orders in WooCommerce's shape (try order 1001 with ada@example.com). Replace it with your shop's node: a WooCommerce **Order → Get** with the order ID `{{ $json.orderNumber }}`, or a Shopify or HTTP Request node mapped to the same fields (`number`, `status`, `billing.email`, `line_items`, `date_created`, `date_completed`, `total`, `currency`).\n\n**Matching order** only answers when the number and the email both match, and gives the same answer when they do not, so the chat never reveals that an order exists.",
+        "content": "### Connect your orders\n**Sample orders** holds five test orders in WooCommerce's shape (try order 1001 with ada@example.com). Replace it with your shop's node: a WooCommerce **Order → Get** with the order ID `{{ $json.orderNumber }}`, or a Shopify or HTTP Request node mapped to the same fields (`number`, `status`, `billing.email`, `line_items`, `date_created`, `date_completed`, `total`, `currency`).\n\n**Find products** holds five sample products in WooCommerce's shape. Replace it with a **WooCommerce Tool** (Product → Get Many, with the search filled in by the AI): **Return asked?** draws what it returns as product cards.\n\n**Matching order** only answers when the number and the email both match, and gives the same answer when they do not, so the chat never reveals that an order exists.",
         "width": 900,
-        "height": 300,
+        "height": 380,
         "color": 7
       }
     },
     {
-      "id": "5b095b09-0000-4000-8000-000000000046",
-      "name": "Note 46",
+      "id": "5b095b09-0000-4000-8000-000000000048",
+      "name": "Note 48",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -1181,6 +1205,17 @@
       ]
     },
     "Request a return": {
+      "ai_tool": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find products": {
       "ai_tool": [
         [
           {

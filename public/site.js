@@ -1,7 +1,7 @@
 // The page's script: the demo chat and its settings, the settings as code, the ticket card,
 // "your n8n", and the code blocks coloured — all with the published packages, from jsDelivr.
 const t = JSON.parse(document.getElementById('i18n').textContent);
-const APARTE = '0.29.3';
+const APARTE = '0.30.0';
 const SHIKI = '4.5.0';
 const cdn = (path) => `https://cdn.jsdelivr.net/npm/${path}`;
 // The card kit comes from the widget's own module: one copy of aparté for the chat and the cards.
@@ -12,16 +12,69 @@ document.getElementById('site-lang')?.addEventListener('change', (e) => { locati
 
 // ── The demo ────────────────────────────────────────────────────────────────
 const LANGS = { en: 'English', fr: 'Français', es: 'Español', 'pt-BR': 'Português', de: 'Deutsch', it: 'Italiano', ru: 'Русский', ja: '日本語', ko: '한국어', 'zh-CN': '中文' };
-// n8n's own variables: a page styled for @n8n/chat keeps its look.
-const COLOURS = {
-    Teal: { secondary: '#178272', primary: '#e74266', header: '#101330' },
-    Indigo: { secondary: '#4f46e5', primary: '#4f46e5', header: '#1e1b4b' },
-    Coral: { secondary: '#e8590c', primary: '#e8590c', header: '#2b1a12' },
-    Plum: { secondary: '#7c3aed', primary: '#7c3aed', header: '#1f1335' },
-    Ink: { secondary: '#111827', primary: '#111827', header: '#000000' },
+// The two choices a site makes, as n8n's own variables (a page styled for @n8n/chat keeps them):
+// its color — the visitor's bubble, the send button, the corner button, the dark surfaces' tint —
+// and the chat's surroundings. Dark follows both by itself, so neither needs a dark value.
+const DEFAULT_ACCENT = '#178272';
+const ACCENTS = { Teal: DEFAULT_ACCENT, Indigo: '#4f46e5', Coral: '#c2410c', Plum: '#7c3aed', Ocean: '#0369a1' };
+const hex = (rgb) => '#' + rgb.map((v) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')).join('');
+const rgbOf = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, share) => hex(rgbOf(a).map((v, i) => v * share + rgbOf(b)[i] * (1 - share)));
+/** White text on this color, as WCAG counts it. */
+function contrastWithWhite(h) {
+    const lum = rgbOf(h).map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 1.05 / (0.2126 * lum[0] + 0.7152 * lum[1] + 0.0722 * lum[2] + 0.05);
+}
+// A background is a light one and its dark: n8n's is the widget's own navy, tinted with the color;
+// the others bring their dark surfaces, as aparté's variables (n8n has no dark ones).
+const darkOf = (bg, surface, border) => ({ bg, surface, surface2: mix(border, surface, 0.5), border, bubble: surface });
+const SURFACES = {
+    n8n: () => ({}),
+    neutral: () => ({ header: '#18181b', body: '#f4f4f5', dark: darkOf('#111113', '#1c1c1f', '#2e2e33') }),
+    warm: () => ({ header: '#2a211a', body: '#f6f1ea', dark: darkOf('#14110e', '#201a15', '#382f26') }),
+    tinted: (accent) => ({
+        header: mix(accent, '#000000', 0.78), body: mix(accent, '#ffffff', 0.07),
+        dark: darkOf(mix(accent, '#0e0e11', 0.1), mix(accent, '#18181c', 0.13), mix(accent, '#2a2a30', 0.22)),
+    }),
 };
+function darkVars() {
+    const d = SURFACES[state.surface](state.accent).dark;
+    return d ? [['--aparte-bg', d.bg, 'behind the messages'], ['--aparte-surface-1', d.surface, 'the field, the cards'], ['--aparte-surface-2', d.surface2, 'the buttons at rest'],
+        ['--aparte-border', d.border, 'the lines'], ['--aparte-message-content-bg-assistant', d.bubble, 'the answers']] : [];
+}
+/** The variables the two choices set, each with what it changes: what the page applies, and shows. */
+function colourVars() {
+    const s = SURFACES[state.surface](state.accent);
+    return [
+        state.accent !== DEFAULT_ACCENT && ['--chat--color--secondary', state.accent, 'your bubble, the send button, the corner button'],
+        s.header && ['--chat--header--background', s.header, 'the title bar, in light and dark'],
+        s.body && ['--chat--body--background', s.body, 'behind the messages, in light'],
+    ].filter(Boolean);
+}
+const paletteStyle = document.head.appendChild(document.createElement('style'));
+function applyPalette() {
+    const css = (vars) => vars.map(([name, value]) => `${name}: ${value};`).join(' ');
+    const dark = css(darkVars());
+    // `html` in front: the widget's own dark rules have these selectors.
+    paletteStyle.textContent = `:root { ${css(colourVars())} }` + (dark
+        ? ` html .aparte-n8n[data-aparte-theme='dark'] { ${dark} } @media (prefers-color-scheme: dark) { html .aparte-n8n:not([data-aparte-theme]) { ${dark} } }`
+        : '');
+    const ratio = contrastWithWhite(state.accent);
+    accentNote.hidden = ratio >= 4.5;
+    accentNote.textContent = t['demo.contrast'].replace('{ratio}', ratio.toLocaleString(t.lang, { maximumFractionDigits: 1 }));
+    renderSettings();
+}
+/** Every chat on the page in the chosen scheme: the demo, the small ones, the examples. */
+function applyScheme() {
+    for (const root of document.querySelectorAll('.aparte-n8n')) {
+        if (state.scheme === 'auto') root.removeAttribute('data-aparte-theme');
+        else root.setAttribute('data-aparte-theme', state.scheme);
+    }
+}
+// The place card on OpenStreetMap's tiles: a site this size is within their usage policy, credit shown.
+const CARDS = { place: { mapTiles: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', mapAttribution: '© OpenStreetMap contributors' } };
 const YOURS_KEY = 'n8n-chat-site:your-n8n';
-const state = { workflow: 'shop', lang: t.lang in LANGS ? t.lang : 'en', mode: 'embedded', colour: 'Teal', yours: null };
+const state = { workflow: 'shop', lang: t.lang in LANGS ? t.lang : 'en', mode: 'embedded', accent: DEFAULT_ACCENT, surface: 'n8n', scheme: 'auto', yours: null };
 try { state.yours = JSON.parse(localStorage.getItem(YOURS_KEY) ?? 'null'); } catch { /* private mode */ }
 
 const host = document.getElementById('demo-chat');
@@ -29,6 +82,7 @@ const note = document.getElementById('floating-note');
 const tryRow = document.getElementById('try');
 const workflowTabs = [...document.querySelectorAll('#workflow-tabs [data-workflow]')];
 const modeTabs = [...document.querySelectorAll('#mode-tabs [data-mode]')];
+const schemeTabs = [...document.querySelectorAll('#scheme-tabs [data-scheme]')];
 let chat;
 
 function selectTab(tabs, on) {
@@ -48,11 +102,12 @@ function mount({ greet = false } = {}) {
     const wf = state.workflow === 'booking' ? 'booking' : 'shop';
     chat = createChat({
         webhookUrl: yours ? state.yours.url : `/webhook/${wf}/chat`,
+        cards: CARDS,
         mode: state.mode,
         ...(floating ? {} : { target: host }),
         defaultLanguage: state.lang,
         loadPreviousSession: Boolean(yours),
-        colorScheme: 'auto',
+        colorScheme: state.scheme,
         // The demo answers in the chat's language; the page's words name it when they match.
         metadata: yours ? { page: location.href } : { lang: state.lang },
         ...(own ? {
@@ -61,10 +116,10 @@ function mount({ greet = false } = {}) {
         } : {}),
     });
     if (floating) chat.open();
-    // The questions to click, in the page's language: the demo answers in English or French.
+    // The questions to click, in the page's language: the demo answers in the chat's language.
     tryRow.replaceChildren(tryRow.firstElementChild);
     if (!yours) {
-        for (const key of ['q1', 'q2', 'q3']) {
+        for (const key of ['q1', 'q4', 'q2', 'q3']) {
             const text = t[`demo.${wf}.${key}`];
             const b = Object.assign(document.createElement('button'), { type: 'button', textContent: text, className: 'aparte-btn aparte-btn--surface aparte-btn--pill aparte-btn--sm' });
             b.addEventListener('click', () => { if (state.mode === 'window') chat.open(); chat.send(text); });
@@ -98,6 +153,7 @@ function arrows(tabs, choose) {
 }
 arrows(workflowTabs, (tab) => showWorkflow(tab.dataset.workflow));
 arrows(modeTabs, (tab) => { state.mode = tab.dataset.mode; selectTab(modeTabs, tab); mount(); });
+arrows(schemeTabs, (tab) => { state.scheme = tab.dataset.scheme; selectTab(schemeTabs, tab); applyScheme(); renderSettings(); });
 for (const link of document.querySelectorAll('[data-open]')) {
     link.addEventListener('click', () => showWorkflow(link.dataset.open));
 }
@@ -106,35 +162,52 @@ const langSelect = document.getElementById('chat-lang');
 for (const [code, name] of Object.entries(LANGS)) langSelect.append(new Option(name, code, false, code === state.lang));
 langSelect.addEventListener('change', () => { state.lang = langSelect.value; mount(); });
 
+// Your color: a few to try, or your own, with what white text reads like on it.
 const swatches = document.getElementById('colours');
-for (const [name, c] of Object.entries(COLOURS)) {
+const accentNote = document.getElementById('accent-note');
+const custom = Object.assign(document.createElement('input'), { type: 'color', className: 'swatch swatch--custom', value: DEFAULT_ACCENT, title: t['demo.custom'] });
+custom.setAttribute('aria-label', t['demo.custom']);
+function pickAccent(value, pressed) {
+    state.accent = value;
+    for (const b of swatches.querySelectorAll('button.swatch')) b.setAttribute('aria-pressed', String(b === pressed));
+    custom.classList.toggle('is-on', !pressed);
+    applyPalette();
+}
+for (const [name, value] of Object.entries(ACCENTS)) {
     const b = Object.assign(document.createElement('button'), { type: 'button', className: 'swatch', title: name });
-    b.style.background = c.secondary;
+    b.style.background = value;
     b.setAttribute('aria-label', name);
-    b.setAttribute('aria-pressed', String(name === state.colour));
-    b.addEventListener('click', () => {
-        state.colour = name;
-        const root = document.documentElement.style;
-        root.setProperty('--chat--color--secondary', c.secondary);
-        root.setProperty('--chat--color--primary', c.primary);
-        root.setProperty('--chat--header--background', c.header);
-        for (const other of swatches.querySelectorAll('.swatch')) other.setAttribute('aria-pressed', String(other === b));
-        renderSettings();
-    });
+    b.setAttribute('aria-pressed', String(value === state.accent));
+    b.addEventListener('click', () => pickAccent(value, b));
     swatches.append(b);
 }
+custom.addEventListener('input', () => pickAccent(custom.value, null));
+swatches.append(custom);
+
+// The chat's surroundings: n8n's own, or a header and a background that suit the page.
+const surfaceTabs = [...document.querySelectorAll('#surface-tabs [data-surface]')];
+arrows(surfaceTabs, (tab) => { state.surface = tab.dataset.surface; selectTab(surfaceTabs, tab); applyPalette(); });
 
 // ── The settings, as code ───────────────────────────────────────────────────
 let highlight = async (code) => null;
 const settingsCode = document.getElementById('settings-code');
 function settingsSource() {
-    const c = COLOURS[state.colour];
-    const lines = ['createChat({', `  webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',`, `  colorScheme: 'auto',`];
+    const lines = ['createChat({', `  webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',`, `  colorScheme: '${state.scheme}',`];
     if (state.lang !== 'en') lines.push(`  defaultLanguage: '${state.lang}',`);
     if (state.mode === 'embedded') lines.push(`  mode: 'embedded',`, `  target: '#support-chat',`);
     lines.push('});');
-    const css = state.colour === 'Teal' ? [] : ['', '/* In your stylesheet: n8n\'s own variables */', ':root {',
-        `  --chat--color--secondary: ${c.secondary};`, `  --chat--color--primary: ${c.primary};`, `  --chat--header--background: ${c.header};`, '}'];
+    const vars = colourVars();
+    const css = vars.length
+        ? ['', '/* In your stylesheet: n8n\'s own variables. */', ':root {', ...vars.map(([name, value, what]) => `  ${name}: ${value}; /* ${what} */`), '}']
+        : [];
+    // This background's dark surfaces, with the widget's own selectors: loaded after its stylesheet, they win.
+    const dark = darkVars().map(([name, value, what]) => `${name}: ${value}; /* ${what} */`);
+    if (dark.length && state.scheme === 'dark') {
+        css.push('', '/* Dark: aparté\'s variables (n8n has none). */', ".aparte-n8n[data-aparte-theme='dark'] {", ...dark.map((v) => `  ${v}`), '}');
+    } else if (dark.length && state.scheme === 'auto') {
+        css.push('', '/* Dark, when the visitor\'s system is: aparté\'s variables (n8n has none). */', '@media (prefers-color-scheme: dark) {',
+            '  .aparte-n8n:not([data-aparte-theme]) {', ...dark.map((v) => `    ${v}`), '  }', '}');
+    }
     return [...lines, ...css].join('\n');
 }
 async function renderSettings() {
@@ -253,7 +326,7 @@ const ticketCard = (config) => defineCard({
 const fence = (name, data) => '\n\n```card-' + name + '\n' + JSON.stringify(data) + '\n```';
 const example = (id, history, setup) => createChat({
     webhookUrl: '/webhook/shop/chat', target: `#${id}`, mode: 'embedded', loadPreviousSession: false,
-    colorScheme: 'auto', defaultLanguage: t.lang, initialMessages: [], messageHistory: history, ...(setup ? { setup } : {}),
+    colorScheme: 'auto', defaultLanguage: t.lang, initialMessages: [], messageHistory: history, cards: CARDS, ...(setup ? { setup } : {}),
 });
 const day = (n) => new Date(Date.now() + n * 86400000).toISOString();
 example('convo-order', [
@@ -263,7 +336,37 @@ example('convo-order', [
         line_items: [{ name: 'Linen shirt', quantity: 1, total: '49.00' }, { name: 'Canvas tote bag', quantity: 1, total: '19.00' }],
     }) },
 ]);
+const [linen, oxford] = t['cards.more.product.names'].split('|');
+example('convo-product', [
+    { sender: 'user', text: t['cards.more.product.q'] },
+    { sender: 'bot', text: t['cards.more.product.a'] + fence('product', [
+        { id: '11', title: linen, image: { src: `${location.origin}/products/linen-shirt.jpg`, alt: linen }, price: '49.00', currency: 'EUR', availability: 'in-stock', options: ['S', 'M', 'L', 'XL'], rating: 4.6, reviewCount: 38 },
+        { id: '12', title: oxford, image: { src: `${location.origin}/products/oxford-shirt.jpg`, alt: oxford }, price: '39.00', compareAtPrice: '55.00', currency: 'EUR', availability: 'in-stock', options: ['M', 'L'], rating: 4.3, reviewCount: 12 },
+    ]) },
+]);
+// Tomorrow at 10:00 on the reader's clock, written without a zone as the booking workflow's card reads it.
+const tomorrow = new Date(Date.now() + 86400000);
+const at = (h, m) => `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}T${h}:${m}:00`;
+example('convo-booking', [
+    { sender: 'user', text: t['cards.more.booking.q'] },
+    { sender: 'bot', text: t['cards.more.booking.a'] + fence('order', {
+        kind: 'booking', status: 'confirmed', items: [{ title: t['cards.more.booking.service'] }],
+        booking: { start: at('10', '00'), end: at('10', '30'), location: `${t['demo.booking.title']}, 12 rue de la Paix, 75002 Paris` },
+    }) },
+]);
+example('convo-place', [
+    { sender: 'user', text: t['cards.more.place.q'] },
+    { sender: 'bot', text: t['cards.more.place.a'] + fence('place', {
+        name: t['demo.booking.title'], address: '12 rue de la Paix, 75002 Paris', phone: '+33 1 23 45 67 89', coordinates: { lat: 48.8686, lng: 2.331 },
+        hours: [1, 2, 3, 4, 5].map((day) => ({ day, open: '09:00', close: '17:00' })),
+        // "Open now" read on the studio's clock, wherever the reader is.
+        utcOffset: Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', timeZoneName: 'shortOffset' })
+            .formatToParts(new Date()).find((x) => x.type === 'timeZoneName').value.match(/GMT([+-]\d+)?/)?.[1] ?? 0) * 60,
+    }) },
+]);
 example('convo-ticket', [
     { sender: 'user', text: t['cards.own.q'] },
     { sender: 'bot', text: t['cards.own.a'] + fence('ticket', { id: 'T-42', subject: 'Refund for order 1001', status: 'Waiting for us' }) },
 ], ticketCard);
+// The examples are made in 'auto': the scheme picked meanwhile, if any.
+applyScheme();

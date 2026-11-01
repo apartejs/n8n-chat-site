@@ -6,6 +6,20 @@
 <title>{{page.title}}</title>
 <meta name="description" content="{{page.description}}">
 <link rel="canonical" href="https://n8n-chat.apartejs.dev/{{lang}}/{{page.path}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="aparté chat for n8n">
+<meta property="og:title" content="{{page.title}}">
+<meta property="og:description" content="{{page.description}}">
+<meta property="og:url" content="https://n8n-chat.apartejs.dev/{{lang}}/{{page.path}}">
+<meta property="og:locale" content="{{ogLocale}}">
+<meta property="og:image" content="https://n8n-chat.apartejs.dev/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{og.alt}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{page.title}}">
+<meta name="twitter:description" content="{{page.description}}">
+<meta name="twitter:image" content="https://n8n-chat.apartejs.dev/og.png">
 {{alternates}}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +29,7 @@
 <link rel="stylesheet" href="/site.css">
 </head>
 <body class="site">
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main">{{nav.skip}}</a>
 <header class="top">
   <a class="logo" href="/{{lang}}/"><span class="logo-mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M4 5h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 4v-4H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span>
     <span>aparté chat <small>for n8n</small></span></a>

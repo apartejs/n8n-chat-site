@@ -21,7 +21,7 @@ import { WORKFLOWS } from './demo/workflows.mjs';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const root = join(here, 'public');
 /** The widget the page loads, pinned: an `@0` range is cached by browsers for days. */
-const WIDGET = '0.3.0';
+const WIDGET = '0.3.1';
 /**
  * Where the widget comes from: jsDelivr, or — to try a build before it is published — a folder
  * this server serves (`WIDGET_SRC=/_widget node server.mjs`, with dist/cdn and style.css in it).
@@ -44,8 +44,8 @@ const LANGS = Object.keys(dictionaries).sort((a, b) => (a === 'en' ? -1 : b === 
 
 /** The workflow pages: `/<lang>/workflows/<id>/`. `live`: the demo plays it in the widget. */
 const WORKFLOW_PAGES = {
-    shop: { file: 'shop-returns', live: true, tags: ['order', 'buttons', 'photo'], options: ", allowFileUploads: true, allowedFilesMimeTypes: 'image/*'" },
-    booking: { file: 'booking', live: true, tags: ['booking', 'buttons', 'table'], options: '' },
+    shop: { file: 'shop-returns', live: true, tags: ['product', 'order', 'buttons', 'photo'], options: ", allowFileUploads: true, allowedFilesMimeTypes: 'image/*'" },
+    booking: { file: 'booking', live: true, tags: ['booking', 'place', 'buttons', 'table'], options: '' },
     documents: { file: 'document-qa', live: false, tags: ['file', 'memory'], options: ', allowFileUploads: true' },
 };
 
@@ -72,6 +72,10 @@ const PAGES = [
     })),
 ];
 
+/** og:locale wants a region: the one each language is written for here. */
+const OG_LOCALES = { en: 'en_US', fr: 'fr_FR', es: 'es_ES', 'pt-BR': 'pt_BR', de: 'de_DE', it: 'it_IT', ru: 'ru_RU', ja: 'ja_JP', ko: 'ko_KR', 'zh-CN': 'zh_CN' };
+const SITE = 'https://n8n-chat.apartejs.dev';
+
 const pages = {};
 for (const lang of LANGS) {
     // A key a translation lacks falls back to English, never to a raw {{key}}.
@@ -82,6 +86,10 @@ for (const lang of LANGS) {
             'widget.css': WIDGET_CSS,
             'widget.js': WIDGET_JS,
             'page.path': page.path,
+            ogLocale: OG_LOCALES[lang] ?? lang.replace('-', '_'),
+            // What public/site.js writes there before any choice, so the page reads the same without it.
+            'settings.code': ['createChat({', "  webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',", "  colorScheme: 'auto',",
+                ...(lang === 'en' ? [] : [`  defaultLanguage: '${lang}',`]), "  mode: 'embedded',", "  target: '#support-chat',", '});'].join('\n'),
             alternates: [...LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="https://n8n-chat.apartejs.dev/${l}/${page.path}">`),
                 `<link rel="alternate" hreflang="x-default" href="https://n8n-chat.apartejs.dev/en/${page.path}">`].join('\n'),
             languages: LANGS.map((l) => `<option value="${l}"${l === lang ? ' selected' : ''}>${dictionaries[l].name}</option>`).join(''),
@@ -95,6 +103,24 @@ for (const lang of LANGS) {
         pages[`/${lang}/${page.path}`] = html;
     }
 }
+
+// For search engines: every page in every language, each naming its translations.
+const ROBOTS = `User-agent: *
+Allow: /
+Disallow: /webhook/
+Disallow: /webhook-waiting/
+
+Sitemap: ${SITE}/sitemap.xml
+`;
+const SITEMAP = ['<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+    ...LANGS.flatMap((lang) => PAGES.map((page) => [
+        `  <url><loc>${SITE}/${lang}/${page.path}</loc>`,
+        ...LANGS.map((l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE}/${l}/${page.path}"/>`),
+        `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/en/${page.path}"/>`,
+        '  </url>',
+    ].join('\n'))),
+    '</urlset>', ''].join('\n');
 
 /** The visitor's language among ours, from Accept-Language; English when none of theirs is. */
 function preferred(header = '') {
@@ -275,6 +301,12 @@ const server = createServer(async (req, res) => {
     if (waiting) return button(res, waiting[1], waiting[2], url.searchParams.get('approved') === 'true');
 
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405).end(); return; }
+    if (url.pathname === '/robots.txt' || url.pathname === '/sitemap.xml') {
+        const robots = url.pathname === '/robots.txt';
+        res.writeHead(200, { 'content-type': robots ? 'text/plain; charset=utf-8' : 'application/xml; charset=utf-8', 'cache-control': 'max-age=3600' });
+        res.end(req.method === 'HEAD' ? undefined : robots ? ROBOTS : SITEMAP);
+        return;
+    }
     if (url.pathname === '/') {
         res.writeHead(302, { location: `/${preferred(req.headers['accept-language'])}/`, vary: 'Accept-Language', 'cache-control': 'no-cache' }).end();
         return;

@@ -22,7 +22,7 @@
       "webhookId": "b00cb00c-d0c5-4a00-8000-000000000001"
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000012",
+      "id": "b00cb00c-0000-4000-8000-000000000016",
       "name": "Settings",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -47,48 +47,72 @@
             },
             {
               "id": "b00cb00c-0000-4000-8000-000000000004",
+              "name": "address",
+              "value": "12 rue de la Paix, 75002 Paris",
+              "type": "string"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000005",
+              "name": "phone",
+              "value": "+33 1 23 45 67 89",
+              "type": "string"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000006",
+              "name": "latitude",
+              "value": 48.8686,
+              "type": "number"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000007",
+              "name": "longitude",
+              "value": 2.331,
+              "type": "number"
+            },
+            {
+              "id": "b00cb00c-0000-4000-8000-000000000008",
               "name": "timezone",
               "value": "Europe/Paris",
               "type": "string"
             },
             {
-              "id": "b00cb00c-0000-4000-8000-000000000005",
+              "id": "b00cb00c-0000-4000-8000-000000000009",
               "name": "openDays",
               "value": "1,2,3,4,5",
               "type": "string"
             },
             {
-              "id": "b00cb00c-0000-4000-8000-000000000006",
+              "id": "b00cb00c-0000-4000-8000-000000000010",
               "name": "opensAt",
               "value": "09:00",
               "type": "string"
             },
             {
-              "id": "b00cb00c-0000-4000-8000-000000000007",
+              "id": "b00cb00c-0000-4000-8000-000000000011",
               "name": "closesAt",
               "value": "17:00",
               "type": "string"
             },
             {
-              "id": "b00cb00c-0000-4000-8000-000000000008",
+              "id": "b00cb00c-0000-4000-8000-000000000012",
               "name": "appointmentMinutes",
               "value": 30,
               "type": "number"
             },
             {
-              "id": "b00cb00c-0000-4000-8000-000000000009",
+              "id": "b00cb00c-0000-4000-8000-000000000013",
               "name": "daysAhead",
               "value": 7,
               "type": "number"
             },
             {
-              "id": "b00cb00c-0000-4000-8000-000000000010",
+              "id": "b00cb00c-0000-4000-8000-000000000014",
               "name": "minimumNoticeMinutes",
               "value": 60,
               "type": "number"
             },
             {
-              "id": "b00cb00c-0000-4000-8000-000000000011",
+              "id": "b00cb00c-0000-4000-8000-000000000015",
               "name": "richCards",
               "value": true,
               "type": "boolean"
@@ -99,7 +123,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000013",
+      "id": "b00cb00c-0000-4000-8000-000000000017",
       "name": "Bookings table",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -137,7 +161,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000014",
+      "id": "b00cb00c-0000-4000-8000-000000000018",
       "name": "Booked times",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -160,7 +184,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000015",
+      "id": "b00cb00c-0000-4000-8000-000000000019",
       "name": "Free times",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -173,7 +197,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000016",
+      "id": "b00cb00c-0000-4000-8000-000000000020",
       "name": "Answer",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
@@ -185,13 +209,13 @@
         "promptType": "define",
         "text": "={{ ($('When chat message received').item.json.chatInput ?? '').trim() || 'Hello' }}",
         "options": {
-          "systemMessage": "=You book appointments for {{ $('Settings').item.json.businessName }}: {{ $('Settings').item.json.service }}.\nNow it is {{ $json.today }} ({{ $('Settings').item.json.timezone }}).\n\nFree times:\n{{ $json.freeTimes }}\n{{ $json.alreadyBooked ? '\\nAlready booked in this conversation: ' + $json.alreadyBooked : '' }}\n\nHow to book:\n1. Ask which day suits the visitor, then offer two or three free times from the list. Never offer a time that is not in the list.\n2. Ask for their name and email address.\n3. When you have the time, the name and the email, call Request_a_booking with \"start\" written exactly as \"YYYY-MM-DD HH:mm\" from the list, for example \"2026-11-03 10:00\".\n4. Never say an appointment is booked: the visitor confirms with a button, and the booking is made then.\n\nAnswer in the visitor's language, in one to three short sentences. For anything else, say you can only help with appointments.",
+          "systemMessage": "=You book appointments for {{ $('Settings').item.json.businessName }}: {{ $('Settings').item.json.service }}.\nNow it is {{ $json.today }} ({{ $('Settings').item.json.timezone }}).\n\nFree times:\n{{ $json.freeTimes }}\n{{ $json.alreadyBooked ? '\\nAlready booked in this conversation: ' + $json.alreadyBooked : '' }}\n\nHow to book:\n1. Ask which day suits the visitor, then offer two or three free times from the list. Never offer a time that is not in the list.\n2. Ask for their name and email address.\n3. When you have the time, the name and the email, call Request_a_booking with \"start\" written exactly as \"YYYY-MM-DD HH:mm\" from the list, for example \"2026-11-03 10:00\".\n4. Never say an appointment is booked: the visitor confirms with a button, and the booking is made then.\n\nIf the visitor asks where you are or when you are open, call Find_us and answer in one sentence: the address and the opening hours are shown as a card under your answer.\n\nAnswer in the visitor's language, in one to three short sentences. For anything else, say you can only help with appointments.",
           "returnIntermediateSteps": true
         }
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000017",
+      "id": "b00cb00c-0000-4000-8000-000000000021",
       "name": "Chat model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
@@ -212,7 +236,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000018",
+      "id": "b00cb00c-0000-4000-8000-000000000022",
       "name": "Conversation memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.4,
@@ -226,7 +250,22 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000019",
+      "id": "b00cb00c-0000-4000-8000-000000000023",
+      "name": "Find us",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1380,
+        540
+      ],
+      "parameters": {
+        "description": "The business's address, phone number and opening hours.",
+        "language": "javaScript",
+        "jsCode": "const s = $('Settings').first().json;\nreturn s.businessName + ', ' + s.address + '. Phone: ' + s.phone + '. Open days (1 = Monday): ' + s.openDays + ', from ' + s.opensAt + ' to ' + s.closesAt + ' (' + s.timezone + ').';"
+      }
+    },
+    {
+      "id": "b00cb00c-0000-4000-8000-000000000024",
       "name": "Request a booking",
       "type": "@n8n/n8n-nodes-langchain.toolCode",
       "typeVersion": 1.3,
@@ -244,7 +283,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000020",
+      "id": "b00cb00c-0000-4000-8000-000000000025",
       "name": "Booking asked?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -253,11 +292,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const out = $input.first().json;\nconst steps = out.intermediateSteps ?? [];\nconst call = steps.filter((s) => s.action?.tool === 'Request_a_booking').pop();\nconst free = $('Free times').first().json.free;\nconst sessionId = $('Free times').first().json.sessionId;\nif (!call) return [{ json: { sessionId, asked: false, output: out.output } }];\nconst r = call.action.toolInput ?? {};\nconst start = String(r.start ?? '').trim();\nconst name = String(r.name ?? '').trim();\nconst email = String(r.email ?? '').trim();\nlet problem = '';\nif (!free.includes(start)) problem = start + ' is not one of the free times. Please choose another time.';\nelse if (!name) problem = 'I need your name to book.';\nelse if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) problem = 'I need a valid email address to book.';\nconst when = DateTime.fromFormat(start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').first().json.timezone });\nreturn [{ json: {\n  sessionId, asked: true, ok: !problem, problem, output: out.output,\n  start, name, email,\n  when: when.isValid ? when.toFormat('cccc d LLLL') + ' at ' + when.toFormat('HH:mm') : start,\n} }];"
+        "jsCode": "const out = $input.first().json;\nconst steps = out.intermediateSteps ?? [];\nconst call = steps.filter((s) => s.action?.tool === 'Request_a_booking').pop();\nconst free = $('Free times').first().json.free;\nconst sessionId = $('Free times').first().json.sessionId;\n// richCards: where the business is and when it opens, drawn as a card when the agent looked it up.\nconst settings = $('Settings').first().json;\nlet output = out.output;\nif (settings.richCards && steps.some((s) => s.action?.tool === 'Find_us')) {\n  const [opens, closes] = [settings.opensAt, settings.closesAt];\n  output += '\\n\\n\\u0060\\u0060\\u0060card-place\\n' + JSON.stringify({\n    name: settings.businessName, address: settings.address, phone: settings.phone,\n    ...(settings.latitude && settings.longitude ? { coordinates: { lat: settings.latitude, lng: settings.longitude } } : {}),\n    hours: String(settings.openDays).split(',').map((d) => ({ day: Number(d.trim()), open: opens, close: closes })),\n    utcOffset: DateTime.now().setZone(settings.timezone).offset,\n  }) + '\\n\\u0060\\u0060\\u0060';\n}\nif (!call) return [{ json: { sessionId, asked: false, output } }];\nconst r = call.action.toolInput ?? {};\nconst start = String(r.start ?? '').trim();\nconst name = String(r.name ?? '').trim();\nconst email = String(r.email ?? '').trim();\nlet problem = '';\nif (!free.includes(start)) problem = start + ' is not one of the free times. Please choose another time.';\nelse if (!name) problem = 'I need your name to book.';\nelse if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) problem = 'I need a valid email address to book.';\nconst when = DateTime.fromFormat(start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').first().json.timezone });\nreturn [{ json: {\n  sessionId, asked: true, ok: !problem, problem, output,\n  start, name, email,\n  when: when.isValid ? when.toFormat('cccc d LLLL') + ' at ' + when.toFormat('HH:mm') : start,\n} }];"
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000021",
+      "id": "b00cb00c-0000-4000-8000-000000000026",
       "name": "Which reply?",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
@@ -272,7 +311,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000022",
+      "id": "b00cb00c-0000-4000-8000-000000000027",
       "name": "Reply",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -286,7 +325,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000023",
+      "id": "b00cb00c-0000-4000-8000-000000000028",
       "name": "Before the buttons",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -300,7 +339,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000024",
+      "id": "b00cb00c-0000-4000-8000-000000000029",
       "name": "Confirm with buttons",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -323,7 +362,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000025",
+      "id": "b00cb00c-0000-4000-8000-000000000030",
       "name": "Not possible",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -337,7 +376,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000027",
+      "id": "b00cb00c-0000-4000-8000-000000000032",
       "name": "Confirmed?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -355,7 +394,7 @@
           },
           "conditions": [
             {
-              "id": "b00cb00c-0000-4000-8000-000000000026",
+              "id": "b00cb00c-0000-4000-8000-000000000031",
               "leftValue": "={{ $json.data.approved }}",
               "rightValue": "",
               "operator": {
@@ -372,7 +411,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000028",
+      "id": "b00cb00c-0000-4000-8000-000000000033",
       "name": "Still free?",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -403,7 +442,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000030",
+      "id": "b00cb00c-0000-4000-8000-000000000035",
       "name": "Taken meanwhile?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -421,7 +460,7 @@
           },
           "conditions": [
             {
-              "id": "b00cb00c-0000-4000-8000-000000000029",
+              "id": "b00cb00c-0000-4000-8000-000000000034",
               "leftValue": "={{ $json.id }}",
               "rightValue": "",
               "operator": {
@@ -438,7 +477,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000031",
+      "id": "b00cb00c-0000-4000-8000-000000000036",
       "name": "Save the booking",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -508,7 +547,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000033",
+      "id": "b00cb00c-0000-4000-8000-000000000038",
       "name": "Booked",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -520,9 +559,9 @@
         "assignments": {
           "assignments": [
             {
-              "id": "b00cb00c-0000-4000-8000-000000000032",
+              "id": "b00cb00c-0000-4000-8000-000000000037",
               "name": "reply",
-              "value": "={{ 'Booked: ' + $('Booking asked?').item.json.when + ', for ' + $('Booking asked?').item.json.name + '. See you then!' + ($('Settings').item.json.richCards ? '\\n\\n```card-order\\n' + JSON.stringify({ kind: 'booking', status: 'confirmed', items: [{ title: $('Settings').item.json.service }], booking: { start: DateTime.fromFormat($('Booking asked?').item.json.start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').item.json.timezone }).toISO(), end: DateTime.fromFormat($('Booking asked?').item.json.start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').item.json.timezone }).plus({ minutes: $('Settings').item.json.appointmentMinutes }).toISO(), location: $('Settings').item.json.businessName } }) + '\\n```' : '') }}",
+              "value": "={{ 'Booked: ' + $('Booking asked?').item.json.when + ', for ' + $('Booking asked?').item.json.name + '. See you then!' + ($('Settings').item.json.richCards ? '\\n\\n```card-order\\n' + JSON.stringify({ kind: 'booking', status: 'confirmed', items: [{ title: $('Settings').item.json.service }], booking: { start: DateTime.fromFormat($('Booking asked?').item.json.start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').item.json.timezone }).toISO(), end: DateTime.fromFormat($('Booking asked?').item.json.start, 'yyyy-MM-dd HH:mm', { zone: $('Settings').item.json.timezone }).plus({ minutes: $('Settings').item.json.appointmentMinutes }).toISO(), location: $('Settings').item.json.businessName + ', ' + $('Settings').item.json.address } }) + '\\n```' : '') }}",
               "type": "string"
             }
           ]
@@ -531,7 +570,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000035",
+      "id": "b00cb00c-0000-4000-8000-000000000040",
       "name": "Taken",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -543,7 +582,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "b00cb00c-0000-4000-8000-000000000034",
+              "id": "b00cb00c-0000-4000-8000-000000000039",
               "name": "reply",
               "value": "={{ 'Sorry, ' + $('Booking asked?').item.json.when + ' was just taken. Which other time suits you?' }}",
               "type": "string"
@@ -554,7 +593,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000037",
+      "id": "b00cb00c-0000-4000-8000-000000000042",
       "name": "Another time",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -566,7 +605,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "b00cb00c-0000-4000-8000-000000000036",
+              "id": "b00cb00c-0000-4000-8000-000000000041",
               "name": "reply",
               "value": "No problem. Which other day or time suits you?",
               "type": "string"
@@ -577,7 +616,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000038",
+      "id": "b00cb00c-0000-4000-8000-000000000043",
       "name": "Tell the visitor",
       "type": "@n8n/n8n-nodes-langchain.chat",
       "typeVersion": 1.3,
@@ -591,7 +630,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000039",
+      "id": "b00cb00c-0000-4000-8000-000000000044",
       "name": "Keep it in the conversation",
       "type": "@n8n/n8n-nodes-langchain.memoryManager",
       "typeVersion": 1.1,
@@ -616,7 +655,7 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000040",
+      "id": "b00cb00c-0000-4000-8000-000000000045",
       "name": "Keep the problem in the conversation",
       "type": "@n8n/n8n-nodes-langchain.memoryManager",
       "typeVersion": 1.1,
@@ -642,8 +681,8 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000041",
-      "name": "Note 41",
+      "id": "b00cb00c-0000-4000-8000-000000000046",
+      "name": "Note 46",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -651,15 +690,15 @@
         0
       ],
       "parameters": {
-        "content": "## Book appointments from the chat on your website\n\nA visitor asks for an appointment in the chat on your site. The agent offers free times from your opening hours, asks for a name and an email, and the visitor **confirms with a button**. The booking is saved in a data table, and a time that is taken can no longer be offered.\n\n### Requirements\n- An n8n instance the visitor's browser can reach on a public URL, with data tables. Tested on n8n 2.45.7.\n- An OpenAI API key, or credentials for any other chat model n8n supports that can call tools.\n\n### Set up\n1. Open **Settings**: your business name, the service, the timezone, the opening days (1 = Monday) and hours, the length of an appointment. `richCards` adds a card under the answer (the order, the booking) as a code block: the aparté chat widget for n8n draws it, n8n's own chat shows it as code. Turn it off for n8n's chat.\n2. Open **Chat model** and add your OpenAI credential.\n3. Open **When chat message received**, put your site in **Allowed Origins**, then **publish** the workflow and copy the production URL that ends in `/chat`.\n4. Paste this in your page, with your URL:\n\n```html\n<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.3.0/dist/style.css\">\n<script type=\"module\">\n  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.3.0/dist/cdn/n8n-chat.js';\n  createChat({ webhookUrl: 'YOUR_PRODUCTION_URL' });\n</script>\n```\n\nThat widget is [@aparte/n8n-chat](https://github.com/apartejs/n8n-chat) (MIT): it shows the confirm buttons inside the conversation and keeps the conversation after a reload. n8n's own widget (`@n8n/chat`) works with this workflow too.",
+        "content": "## Book appointments from the chat on your website\n\nA visitor asks for an appointment in the chat on your site. The agent offers free times from your opening hours, asks for a name and an email, and the visitor **confirms with a button**. The booking is saved in a data table, and a time that is taken can no longer be offered.\n\n### Requirements\n- An n8n instance the visitor's browser can reach on a public URL, with data tables. Tested on n8n 2.45.7.\n- An OpenAI API key, or credentials for any other chat model n8n supports that can call tools.\n\n### Set up\n1. Open **Settings**: your business name, the service, the address, phone number and coordinates (for a map and directions), the timezone, the opening days (1 = Monday) and hours, the length of an appointment. `richCards` adds a card under the answer (the booking, where you are) as a code block: the aparté chat widget for n8n draws it, n8n's own chat shows it as code. Turn it off for n8n's chat.\n2. Open **Chat model** and add your OpenAI credential.\n3. Open **When chat message received**, put your site in **Allowed Origins**, then **publish** the workflow and copy the production URL that ends in `/chat`.\n4. Paste this in your page, with your URL:\n\n```html\n<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.3.1/dist/style.css\">\n<script type=\"module\">\n  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@0.3.1/dist/cdn/n8n-chat.js';\n  createChat({ webhookUrl: 'YOUR_PRODUCTION_URL' });\n</script>\n```\n\nThat widget is [@aparte/n8n-chat](https://github.com/apartejs/n8n-chat) (MIT): it shows the confirm buttons inside the conversation and keeps the conversation after a reload. n8n's own widget (`@n8n/chat`) works with this workflow too.",
         "width": 580,
         "height": 980,
         "color": 4
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000042",
-      "name": "Note 42",
+      "id": "b00cb00c-0000-4000-8000-000000000047",
+      "name": "Note 47",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -674,8 +713,8 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000043",
-      "name": "Note 43",
+      "id": "b00cb00c-0000-4000-8000-000000000048",
+      "name": "Note 48",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -690,8 +729,8 @@
       }
     },
     {
-      "id": "b00cb00c-0000-4000-8000-000000000044",
-      "name": "Note 44",
+      "id": "b00cb00c-0000-4000-8000-000000000049",
+      "name": "Note 49",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -956,6 +995,17 @@
       ]
     },
     "Request a booking": {
+      "ai_tool": [
+        [
+          {
+            "node": "Answer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find us": {
       "ai_tool": [
         [
           {

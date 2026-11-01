@@ -22,7 +22,7 @@ export default {
     keepOrder: 'Keep my order',
     returnOpen: (n, email) => `Your return for order ${n} is open. We will email you at ${email} with how to send the items back.`,
     kept: 'All right, your order stays as it is. Anything else?',
-    offTopic: 'I can only help with orders and returns. For anything else, please email support@example.com.',
+    offTopic: 'I can only help with products, orders and returns. For anything else, please email support@example.com.',
     defaultReason: 'does not fit',
     whichDay: 'I can book you a 30-minute appointment, Monday to Friday, 9:00 to 17:00. Which day suits you?',
     offer: (day, times) => `${day} works! Would you prefer ${times.slice(0, -1).join(', ')} or ${times.at(-1)}? Please also give me your name and email address.`,
@@ -45,6 +45,11 @@ export default {
     buttonsDeclined: 'All right, nothing booked. Anything else?',
     filesNone: 'Attach a file with the paperclip, and I will tell you what I received.',
     filesGot: (list) => `I received ${list}. A real workflow would read them now: a PDF to answer about, a photo of a damaged parcel, a CV.`,
+    // The shop's products, named on their card in this language; the answer that shows them.
+    productNames: { 'Linen shirt': 'Linen shirt', 'Oxford shirt': 'Oxford shirt', 'Wool coat': 'Wool coat', 'Canvas tote bag': 'Canvas tote bag', 'Leather belt': 'Leather belt' },
+    found: 'Here is what we have. The sizes, the price and the stock are on the card.',
+    // Booking: where the studio is, shown with its card.
+    whereWeAre: 'We are at 12 rue de la Paix in Paris, open Monday to Friday from 9:00 to 17:00.',
     // Regular expressions (as strings, case-insensitive) the visitor's message is matched on.
     words: {
         returning: String.raw`\b(return|send (it )?back|refund|broken)\b|too (small|big|large)`,
@@ -52,6 +57,12 @@ export default {
         order: String.raw`\b(order|parcel|delivery|where)\b`,
         shirt: String.raw`shirt|linen`,
         bag: String.raw`tote|bag`,
+        linen: String.raw`linen`,
+        oxford: String.raw`oxford`,
+        coat: String.raw`coat|jacket`,
+        wool: String.raw`wool`,
+        belt: String.raw`belt`,
+        where: String.raw`\bwhere\b|address|\bopen\b|opening|hours|find you`,
         afternoon: String.raw`afternoon`,
         tomorrow: String.raw`\btomorrow\b`,
         first: String.raw`\bfirst\b`,

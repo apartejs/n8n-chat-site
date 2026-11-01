@@ -20,7 +20,7 @@ export default {
     keepOrder: 'Bestellung behalten',
     returnOpen: (n, email) => `Ihre Rücksendung zu Bestellung ${n} ist eröffnet. Wir schreiben Ihnen an ${email}, wie Sie die Artikel zurückschicken.`,
     kept: 'In Ordnung, Ihre Bestellung bleibt, wie sie ist. Sonst noch etwas?',
-    offTopic: 'Ich kann Ihnen nur bei Bestellungen und Rücksendungen helfen. Für alles andere schreiben Sie bitte an support@example.com.',
+    offTopic: 'Ich kann Ihnen nur bei Produkten, Bestellungen und Rücksendungen helfen. Für alles andere schreiben Sie bitte an support@example.com.',
     defaultReason: 'passt nicht',
     whichDay: 'Ich kann einen Termin von 30 Minuten für Sie buchen, Montag bis Freitag, von 9:00 bis 17:00 Uhr. Welcher Tag passt Ihnen?',
     offer: (day, times) => `${day} passt! Möchten Sie lieber ${times.slice(0, -1).join(', ')} oder ${times.at(-1)}? Nennen Sie mir bitte auch Ihren Namen und Ihre E-Mail-Adresse.`,
@@ -42,12 +42,23 @@ export default {
     buttonsDeclined: 'In Ordnung, es wurde nichts reserviert. Sonst noch etwas?',
     filesNone: 'Hängen Sie mit der Büroklammer eine Datei an, und ich sage Ihnen, was ich erhalten habe.',
     filesGot: (list) => `Ich habe ${list} erhalten. Ein echter Workflow würde sie jetzt lesen: ein PDF, zu dem er Fragen beantwortet, das Foto eines beschädigten Pakets, einen Lebenslauf.`,
+    // The shop's products, named on their card in this language; the answer that shows them.
+    productNames: { 'Linen shirt': 'Leinenhemd', 'Oxford shirt': 'Oxford-Hemd', 'Wool coat': 'Wollmantel', 'Canvas tote bag': 'Canvas-Tasche', 'Leather belt': 'Ledergürtel' },
+    found: 'Das haben wir. Größen, Preis und Bestand stehen auf der Karte.',
+    // Booking: where the studio is, shown with its card.
+    whereWeAre: 'Sie finden uns in der 12 rue de la Paix in Paris, geöffnet Montag bis Freitag von 9 bis 17 Uhr.',
     words: {
         returning: String.raw`zurück|rückgabe|retour|erstatt|defekt|kaputt|zu (klein|groß|gross)`,
         reason: String.raw`zu (klein|groß|gross)|kaputt|defekt|beschädigt|falsche größe|anders überlegt|passt nicht`,
         order: String.raw`bestellung|paket|lieferung|sendung|\bwo\b`,
         shirt: String.raw`hemd|leinen`,
         bag: String.raw`tasche|beutel|tote`,
+        linen: String.raw`leinen`,
+        oxford: String.raw`oxford`,
+        coat: String.raw`mantel|jacke`,
+        wool: String.raw`woll`,
+        belt: String.raw`gürtel|gurtel`,
+        where: String.raw`\bwo\b|adresse|geöffnet|offen|öffnungszeit`,
         afternoon: String.raw`nachmittag`,
         // "morgen" also means "morning": not after a weekday, "am" or "heute".
         tomorrow: String.raw`(?<!(?:montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|heute|am) )\bmorgen\b`,

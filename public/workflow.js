@@ -4,7 +4,7 @@ const t = JSON.parse(document.getElementById('i18n').textContent);
 const main = document.querySelector('[data-workflow]');
 const id = main.dataset.workflow;
 const live = id === 'shop' || id === 'booking';
-const APARTE = '0.29.3';
+const APARTE = '0.30.0';
 const SHIKI = '4.5.0';
 const cdn = (path) => `https://cdn.jsdelivr.net/npm/${path}`;
 
@@ -16,6 +16,8 @@ if (live) {
     const { createChat } = await import(document.documentElement.dataset.widget);
     const chat = createChat({
         webhookUrl: `/webhook/${id}/chat`, target: '#demo-chat', mode: 'embedded', loadPreviousSession: false, colorScheme: 'auto',
+        // The studio's address on OpenStreetMap's tiles, credit shown.
+        cards: { place: { mapTiles: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', mapAttribution: '© OpenStreetMap contributors' } },
         // The shop asks for a photo of a damaged item, as its workflow's Chat Trigger allows.
         ...(id === 'shop' ? { allowFileUploads: true, allowedFilesMimeTypes: 'image/*' } : {}),
         defaultLanguage: t.lang, metadata: { lang: t.lang },
