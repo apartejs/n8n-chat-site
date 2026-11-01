@@ -14,7 +14,7 @@ for (const el of document.querySelectorAll('[data-if-nolive]')) el.hidden = live
 
 if (live) {
     const { createChat } = await import(document.documentElement.dataset.widget);
-    const chat = createChat({
+    createChat({
         webhookUrl: `/webhook/${id}/chat`, target: '#demo-chat', mode: 'embedded', loadPreviousSession: false, colorScheme: 'auto',
         // The studio's address on OpenStreetMap's tiles, credit shown.
         cards: { place: { mapTiles: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', mapAttribution: '© OpenStreetMap contributors' } },
@@ -23,14 +23,10 @@ if (live) {
         defaultLanguage: t.lang, metadata: { lang: t.lang },
         initialMessages: [t[`demo.${id}.greeting`]],
         i18n: { [t.lang]: { title: t[`demo.${id}.title`], subtitle: t[`demo.${id}.subtitle`], inputPlaceholder: t['demo.placeholder'] } },
+        // The questions to start with, in the chat, until the first message; then each answer
+        // of the demo offers what comes next.
+        suggestions: ['q1', 'q2', 'q3'].map((key) => t[`demo.${id}.${key}`]),
     });
-    const tryRow = document.getElementById('try');
-    for (const key of ['q1', 'q2', 'q3']) {
-        const text = t[`demo.${id}.${key}`];
-        const b = Object.assign(document.createElement('button'), { type: 'button', textContent: text, className: 'aparte-btn aparte-btn--surface aparte-btn--pill aparte-btn--sm' });
-        b.addEventListener('click', () => chat.send(text));
-        tryRow.append(b);
-    }
 }
 
 // The workflow, as n8n shows it: <n8n-demo>, n8n's own preview, fed the JSON this page offers.

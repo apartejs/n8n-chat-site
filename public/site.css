@@ -119,7 +119,6 @@ h1 span { color: var(--teal); }
 .swatch--custom.is-on::-webkit-color-swatch { opacity: 1; }
 .swatch--custom.is-on::-moz-color-swatch { opacity: 1; }
 .accent-note { margin: 6px 0 0; font-size: 12.5px; color: #b45309; }
-.try { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
 .made { text-align: center; font-size: 13px; color: var(--ink-2); margin: 4px 0 0; }
 .made a { color: inherit; }
 
@@ -226,7 +225,6 @@ h1 span { color: var(--teal); }
   --n8n-iframe-border-radius: 0;
 }
 .demo--page { height: 560px; margin-top: 12px; }
-.wf-live .try { margin-top: 12px; }
 .wf-nolive { grid-column: 1 / -1; }
 .steps { margin: 0 0 20px; padding-inline-start: 22px; }
 .steps li { margin: 0 0 10px; }

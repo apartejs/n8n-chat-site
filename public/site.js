@@ -80,7 +80,6 @@ try { state.yours = JSON.parse(localStorage.getItem(YOURS_KEY) ?? 'null'); } cat
 
 const host = document.getElementById('demo-chat');
 const note = document.getElementById('floating-note');
-const tryRow = document.getElementById('try');
 const workflowTabs = [...document.querySelectorAll('#workflow-tabs [data-workflow]')];
 const modeTabs = [...document.querySelectorAll('#mode-tabs [data-mode]')];
 const schemeTabs = [...document.querySelectorAll('#scheme-tabs [data-scheme]')];
@@ -111,23 +110,15 @@ function mount({ greet = false } = {}) {
         colorScheme: state.scheme,
         // The demo answers in the chat's language; the page's words name it when they match.
         metadata: yours ? { page: location.href } : { lang: state.lang },
+        // The questions to start with, in the chat itself, above the input until the first
+        // message; after that each answer of the demo offers what comes next.
+        ...(yours ? {} : { suggestions: ['q1', 'q4', 'q2', 'q3'].map((key) => t[`demo.${wf}.${key}`]) }),
         ...(own ? {
             initialMessages: [t[`demo.${wf}.greeting`]],
             i18n: { [state.lang]: { title: t[`demo.${wf}.title`], subtitle: t[`demo.${wf}.subtitle`], inputPlaceholder: t['demo.placeholder'] } },
         } : {}),
     });
     if (floating) chat.open();
-    // The questions to click, in the page's language: the demo answers in the chat's language.
-    tryRow.replaceChildren(tryRow.firstElementChild);
-    if (!yours) {
-        for (const key of ['q1', 'q4', 'q2', 'q3']) {
-            const text = t[`demo.${wf}.${key}`];
-            const b = Object.assign(document.createElement('button'), { type: 'button', textContent: text, className: 'aparte-btn aparte-btn--surface aparte-btn--pill aparte-btn--sm' });
-            b.addEventListener('click', () => { if (state.mode === 'window') chat.open(); chat.send(text); });
-            tryRow.append(b);
-        }
-    }
-    tryRow.hidden = Boolean(yours);
     if (greet && !yours) setTimeout(() => chat.send(t[`demo.${wf}.q1`]), 900);
     renderSettings();
 }

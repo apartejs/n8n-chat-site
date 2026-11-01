@@ -27,7 +27,10 @@ for (const file of readdirSync(dir).filter((f) => f.endsWith('.mjs'))) {
     const lang = file.slice(0, -4);
     TEXTS[lang] = (await import(new URL(`./texts/${file}`, import.meta.url))).default;
     // The studio's name as the page names it in that language (its chat's title).
-    TEXTS[lang].studio = JSON.parse(readFileSync(new URL(`../i18n/${lang}.json`, import.meta.url), 'utf8'))['demo.booking.title'];
+    const page = JSON.parse(readFileSync(new URL(`../i18n/${lang}.json`, import.meta.url), 'utf8'));
+    TEXTS[lang].studio = page['demo.booking.title'];
+    // The page's questions, offered as quick replies when they are the turn that comes next.
+    TEXTS[lang].ask = { book: page['demo.booking.q1'], order: page['demo.shop.q1'], ret: page['demo.shop.q2'], other: page['demo.shop.q3'], size: page['demo.shop.q4'] };
 }
 
 /** A language's texts, English for any key it lacks — merged once per language. */
@@ -130,24 +133,25 @@ function shop(state, text) {
     const email = (text.match(EMAIL) ?? [])[0]?.toLowerCase();
     if (W.returning.test(text)) state.returning = true;
 
-    if (number && !ORDERS[number] && email) return [{ say: T.noMatch }];
+    if (number && !ORDERS[number] && email) return [{ say: T.noMatch + replies([T.ask.order]) }];
     if (number && ORDERS[number] && !email && state.verified !== number) {
         state.asked = number;
-        return [{ say: T.askEmail(number) }];
+        // The address on file, to click: the demo's orders are made up.
+        return [{ say: T.askEmail(number) + replies([ORDERS[number].email]) }];
     }
     if (number && ORDERS[number] && email) {
         state.asked = undefined;
-        if (ORDERS[number].email !== email) return [{ say: T.noMatch }];
+        if (ORDERS[number].email !== email) return [{ say: T.noMatch + replies([ORDERS[number].email]) }];
         state.verified = number;
-        if (!state.returning) return [{ say: orderStatus(T, number) }];
+        if (!state.returning) return [{ say: orderStatus(T, number) + replies(ORDERS[number].status === 'shipped' ? [T.ask.ret, T.ask.size] : [T.ask.order, T.ask.size]) }];
     }
     if (state.returning) {
-        if (!state.verified) return [{ say: T.askOrder }];
+        if (!state.verified) return [{ say: T.askOrder + replies(['1001, ada@example.com']) }];
         const n = state.verified;
         const o = ORDERS[n];
         if (o.status !== 'shipped') {
             state.returning = false;
-            return [{ say: T.notShipped(n) }];
+            return [{ say: T.notShipped(n) + replies([T.ask.order]) }];
         }
         const item = (W.shirt.test(text) && o.items.find((i) => i.name === 'Linen shirt'))
             || (W.bag.test(text) && o.items.find((i) => i.name === 'Canvas tote bag'))
@@ -159,15 +163,15 @@ function shop(state, text) {
             {
                 ask: {
                     text: T.returnQ(T.returnNames[item.name] ?? item.name, n, reason), yes: T.openReturn, no: T.keepOrder,
-                    then: (approved) => [{ say: approved ? T.returnOpen(n, o.email) : T.kept }],
+                    then: (approved) => [{ say: (approved ? T.returnOpen(n, o.email) : T.kept) + replies([T.ask.size]) }],
                 },
             },
         ];
     }
     const found = number ? [] : productsIn(W, text);
-    if (found.length) return [{ say: T.found + productCard(T, found) }];
-    if (W.order.test(text)) return [{ say: T.lookUp }];
-    return [{ say: T.offTopic }];
+    if (found.length) return [{ say: T.found + productCard(T, found) + replies([T.ask.order, T.ask.ret]) }];
+    if (W.order.test(text)) return [{ say: T.lookUp + replies(['1001, ada@example.com']) }];
+    return [{ say: T.offTopic + replies([T.ask.order, T.ask.size]) }];
 }
 
 // ── Booking ─────────────────────────────────────────────────────────────────
@@ -199,7 +203,7 @@ function placeCard(T) {
 function booking(state, text) {
     const T = textsOf(state);
     const W = wordsOf(T);
-    if (W.where.test(text)) return [{ say: T.whereWeAre + placeCard(T) }];
+    if (W.where.test(text)) return [{ say: T.whereWeAre + placeCard(T) + replies([T.ask.book]) }];
     const day = dayFrom(W, text, state.day);
     if (day) state.day = day;
     const time = (text.match(/\b([01]?\d|2[0-3])\s?[:h時시点]\s?([0-5]\d)?/) ?? []);
@@ -226,7 +230,8 @@ function booking(state, text) {
         state.time = undefined;
         return [{ say: T.notFree(t) + replies(SLOTS) }];
     }
-    if (!state.name || !state.email) return [{ say: T.needName(state.time) }];
+    // A name and an address to click, for a visitor who only wants to see the booking go through.
+    if (!state.name || !state.email) return [{ say: T.needName(state.time) + replies(['Ada Lovelace, ada@example.com']) }];
     const [h, m] = state.time.split(':').map(Number);
     const start = new Date(state.day);
     start.setHours(h, m, 0, 0);
@@ -244,7 +249,7 @@ function booking(state, text) {
                             kind: 'booking', status: 'confirmed', items: [{ title: T.service }],
                             booking: { start: localTime(start, h * 60 + m), end: localTime(start, h * 60 + m + 30), location: `${T.studio}, 12 rue de la Paix, 75002 Paris` },
                         })
-                        : T.otherTime,
+                        : T.otherTime + replies(SLOTS),
                 }],
             },
         },
