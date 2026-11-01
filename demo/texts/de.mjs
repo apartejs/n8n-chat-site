@@ -35,6 +35,13 @@ export default {
     // "Dienstag, 3. November um 10:00".
     at: 'um',
     service: 'Termin, 30 Minuten',
+    buttonsQ: 'Soll ich Ihnen für heute Abend um 20:00 Uhr einen Tisch reservieren?',
+    buttonsYes: 'Reservieren',
+    buttonsNo: 'Nein, danke',
+    buttonsBooked: 'Erledigt: ein Tisch für heute Abend um 20:00 Uhr, auf Ihren Namen.',
+    buttonsDeclined: 'In Ordnung, es wurde nichts reserviert. Sonst noch etwas?',
+    filesNone: 'Hängen Sie mit der Büroklammer eine Datei an, und ich sage Ihnen, was ich erhalten habe.',
+    filesGot: (list) => `Ich habe ${list} erhalten. Ein echter Workflow würde sie jetzt lesen: ein PDF, zu dem er Fragen beantwortet, das Foto eines beschädigten Pakets, einen Lebenslauf.`,
     words: {
         returning: String.raw`zurück|rückgabe|retour|erstatt|defekt|kaputt|zu (klein|groß|gross)`,
         reason: String.raw`zu (klein|groß|gross)|kaputt|defekt|beschädigt|falsche größe|anders überlegt|passt nicht`,

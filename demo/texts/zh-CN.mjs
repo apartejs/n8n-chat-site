@@ -38,6 +38,13 @@ export default {
     // No word between the date and the time.
     at: '',
     service: '预约，30 分钟',
+    buttonsQ: '需要我为您预订今晚 20:00 的餐桌吗？',
+    buttonsYes: '预订',
+    buttonsNo: '不用了，谢谢',
+    buttonsBooked: '已完成：今晚 20:00 的餐桌，以您的名字预订。',
+    buttonsDeclined: '好的，没有预订任何内容。还有其他需要帮忙的吗？',
+    filesNone: '请点击回形针上传文件，我会告诉您收到了什么。',
+    filesGot: (list) => `已收到 ${list}。真实的工作流此时会读取它们：用来回答问题的 PDF、受损包裹的照片、简历。`,
     words: {
         returning: String.raw`退货|退款|退掉|退回|退换|寄回|坏了|损坏|太(小|大)`,
         reason: String.raw`太(小|大)了?|坏了|损坏|尺码不(对|合适)|不想要了`,

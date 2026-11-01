@@ -44,7 +44,7 @@ const LANGS = Object.keys(dictionaries).sort((a, b) => (a === 'en' ? -1 : b === 
 
 /** The workflow pages: `/<lang>/workflows/<id>/`. `live`: the demo plays it in the widget. */
 const WORKFLOW_PAGES = {
-    shop: { file: 'shop-returns', live: true, tags: ['order', 'buttons', 'photo'], options: '' },
+    shop: { file: 'shop-returns', live: true, tags: ['order', 'buttons', 'photo'], options: ", allowFileUploads: true, allowedFilesMimeTypes: 'image/*'" },
     booking: { file: 'booking', live: true, tags: ['booking', 'buttons', 'table'], options: '' },
     documents: { file: 'document-qa', live: false, tags: ['file', 'memory'], options: ', allowFileUploads: true' },
 };
@@ -86,7 +86,7 @@ for (const lang of LANGS) {
                 `<link rel="alternate" hreflang="x-default" href="https://n8n-chat.apartejs.dev/en/${page.path}">`].join('\n'),
             languages: LANGS.map((l) => `<option value="${l}"${l === lang ? ' selected' : ''}>${dictionaries[l].name}</option>`).join(''),
             // Read by the page's script; `<` escaped so a text cannot close the script tag.
-            json: JSON.stringify(t).replace(/</g, '\u003c'),
+            json: JSON.stringify(t).replace(/</g, '\\u003c'),
             ...page.fill(t),
         };
         const html = TEMPLATES[page.template].replace(/\{\{([a-zA-Z0-9.@]+)\}\}/g, (m, key) => fill[key] ?? t[key] ?? m);
@@ -98,13 +98,16 @@ for (const lang of LANGS) {
 
 /** The visitor's language among ours, from Accept-Language; English when none of theirs is. */
 function preferred(header = '') {
-    const asked = header.split(',').map((part) => {
-        const [tag, q] = part.trim().split(';q=');
-        return { tag: tag.toLowerCase(), q: q ? Number(q) : 1 };
-    }).filter((x) => x.tag).sort((a, b) => b.q - a.q);
+    const asked = String(header).split(',').map((part) => {
+        const [tag = '', ...params] = part.split(';').map((s) => s.trim());
+        const q = params.map((p) => p.match(/^q\s*=\s*([0-9.]+)$/i)).find(Boolean);
+        return { tag: tag.toLowerCase(), q: q ? Number(q[1]) : 1 };
+    }).filter((x) => x.tag && x.q > 0).sort((a, b) => b.q - a.q);
     for (const { tag } of asked) {
         const exact = LANGS.find((l) => l.toLowerCase() === tag);
         if (exact) return exact;
+        // Traditional Chinese is not our Simplified Chinese: such a reader gets English.
+        if (/^zh-(tw|hk|mo|hant)/.test(tag)) continue;
         const base = LANGS.find((l) => l.split('-')[0].toLowerCase() === tag.split('-')[0]);
         if (base) return base;
     }
@@ -117,6 +120,8 @@ const TYPES = {
     '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8',
 };
 const MAX_BODY = 64 * 1024;
+/** The files demo reads what is attached, up to this, and keeps nothing. */
+const MAX_FILES_BODY = 1024 * 1024;
 const MAX_KEPT = 5000;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -162,45 +167,84 @@ async function play(execution, steps) {
 }
 
 function newExecution(workflow, sessionId) {
-    const execution = { id: String(executions.size + Date.now()), workflow, sessionId, pending: null };
+    // Unguessable: the id is all a socket needs to take an execution's frames.
+    const execution = { id: randomUUID(), workflow, sessionId, pending: null };
     execution.ready = new Promise((resolve) => { execution.attach = resolve; });
     executions.set(execution.id, execution);
     if (executions.size > MAX_KEPT) executions.delete(executions.keys().next().value);
     return execution;
 }
 
-function turn(execution, chatInput) {
+function turn(execution, chatInput, files = []) {
     const state = stateOf(execution.workflow, execution.sessionId);
     if (execution.lang) state.lang = execution.lang;
-    const steps = WORKFLOWS[execution.workflow](state, String(chatInput ?? '').slice(0, 2000));
+    const text = typeof chatInput === 'string' ? chatInput.slice(0, 2000) : '';
+    const steps = WORKFLOWS[execution.workflow](state, text, { files });
     void play(execution, steps);
 }
 
-/** The fields of a JSON or multipart body: the widget sends multipart when a file is attached. */
-function fieldsOf(raw, type) {
+/**
+ * The fields of a JSON or multipart body (the widget sends multipart when a file is attached),
+ * and the files' names and sizes — read from the bytes as latin1, so one byte is one character.
+ */
+function fieldsOf(buffer, type) {
     if (type.includes('application/json')) {
-        try { return JSON.parse(raw); } catch { return {}; }
+        try { return { fields: JSON.parse(buffer.toString('utf8')), files: [] }; } catch { return { fields: {}, files: [] }; }
     }
+    const boundary = (type.match(/boundary=(?:"([^"]+)"|([^;]+))/) ?? []).slice(1).find(Boolean);
     const fields = {};
-    for (const m of raw.matchAll(/name="([^"]+)"\r?\n\r?\n([\s\S]*?)\r?\n--/g)) fields[m[1]] = m[2];
-    return fields;
+    const files = [];
+    if (!boundary) return { fields, files };
+    for (const part of buffer.toString('latin1').split(`--${boundary}`)) {
+        const split = part.indexOf('\r\n\r\n');
+        if (split < 0) continue;
+        const head = part.slice(0, split);
+        const body = part.slice(split + 4).replace(/\r\n$/, '');
+        const name = (head.match(/name="([^"]*)"/) ?? [])[1];
+        const filename = (head.match(/filename="([^"]*)"/) ?? [])[1];
+        if (filename !== undefined) {
+            if (files.length < 10) files.push({ name: Buffer.from(filename, 'latin1').toString('utf8').slice(0, 120), size: body.length });
+        } else if (name) {
+            fields[name] = Buffer.from(body, 'latin1').toString('utf8');
+        }
+    }
+    return { fields, files };
 }
 
+/** Uploads being read at once: past it, the files demo answers 503 rather than hold more. */
+let uploading = 0;
+const MAX_UPLOADING = 20;
+
 async function chat(req, res, workflow) {
-    let raw = '';
-    for await (const chunk of req) {
-        raw += chunk;
-        if (raw.length > MAX_BODY) { res.writeHead(413).end(); return; }
+    const files = workflow === 'files';
+    if (files && uploading >= MAX_UPLOADING) { res.writeHead(503, { 'retry-after': '5' }).end(); req.resume(); return; }
+    if (files) uploading++;
+    try {
+        await answer(req, res, workflow, files ? MAX_FILES_BODY : MAX_BODY);
+    } finally {
+        if (files) uploading--;
     }
-    const body = fieldsOf(raw, req.headers['content-type'] ?? '');
-    const json = (value) => res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }).end(JSON.stringify(value));
+}
+
+async function answer(req, res, workflow, limit) {
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of req) {
+        size += chunk.length;
+        if (size > limit) { res.writeHead(413).end(); req.destroy(); return; }
+        chunks.push(chunk);
+    }
+    const { fields: body, files } = fieldsOf(Buffer.concat(chunks), req.headers['content-type'] ?? '');
+    const json = (value, status = 200) => res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }).end(JSON.stringify(value));
+    // A workflow that fails, answered as n8n answers one: the widget says so in the visitor's language.
+    if (workflow === 'broken' && body.action !== 'loadPreviousSession') return json({ code: 500, message: 'Workflow execution failed: the Answer node threw.' }, 500);
     if (body.action === 'loadPreviousSession') return json({ data: [] });
     const sessionId = String(body.sessionId ?? randomUUID()).slice(0, 100);
     const execution = newExecution(workflow, sessionId);
     let metadata = body.metadata;
     try { if (typeof metadata === 'string') metadata = JSON.parse(metadata); } catch { metadata = undefined; }
     if (typeof metadata?.lang === 'string') execution.lang = metadata.lang.slice(0, 10);
-    turn(execution, body.chatInput);
+    turn(execution, body.chatInput, files);
     json({ executionStarted: true, executionId: execution.id, resumeToken: 'demo' });
 }
 
@@ -213,9 +257,15 @@ function button(res, executionId, n, approved) {
     void play(execution, pending.then(approved));
 }
 
+/** The request's URL, or `null` for one that does not parse (`//`, `http://[`…). */
+function urlOf(req) {
+    try { return new URL(req.url ?? '/', 'http://localhost'); } catch { return null; }
+}
+
 const server = createServer(async (req, res) => {
-    const url = new URL(req.url ?? '/', 'http://localhost');
-    const hook = url.pathname.match(/^\/webhook\/(shop|booking)\/chat$/);
+    const url = urlOf(req);
+    if (!url) { res.writeHead(400).end(); return; }
+    const hook = url.pathname.match(/^\/webhook\/(shop|booking|buttons|files|broken)\/chat$/);
     if (hook) {
         if (req.method === 'POST') return chat(req, res, hook[1]).catch(() => res.end());
         res.writeHead(405).end();
@@ -236,7 +286,8 @@ const server = createServer(async (req, res) => {
         res.end(req.method === 'HEAD' ? undefined : pages[pagePath]);
         return;
     }
-    let path = normalize(decodeURIComponent(url.pathname)).replace(/^([/\\])+/, '');
+    let path;
+    try { path = normalize(decodeURIComponent(url.pathname)).replace(/^([/\\])+/, ''); } catch { res.writeHead(400).end(); return; }
     if (path.includes('..')) { res.writeHead(400).end(); return; }
     if (!path || path.endsWith('/') || path.endsWith('\\')) path = join(path, 'index.html');
     try {
@@ -250,19 +301,31 @@ const server = createServer(async (req, res) => {
 
 // The chat socket: one per execution; a message written on it is the next turn.
 server.on('upgrade', (req, socket) => {
-    const url = new URL(req.url ?? '/', 'http://localhost');
-    const execution = executions.get(url.searchParams.get('executionId') ?? '');
-    if (url.pathname !== '/chat' || !execution) { socket.destroy(); return; }
+    const url = urlOf(req);
+    const execution = url && executions.get(url.searchParams.get('executionId') ?? '');
+    if (!url || url.pathname !== '/chat' || !execution) { socket.destroy(); return; }
+    // A file sent on the socket arrives inline as a data URL: the files demo takes bigger frames.
+    const maxFrame = execution.workflow === 'files' ? Math.ceil(MAX_FILES_BODY * 4 / 3) + 4096 : 64 * 1024;
     const ws = acceptSocket(req, socket, (text) => {
         if (text === 'n8n|heartbeat-ack') return;
         let message;
         try { message = JSON.parse(text); } catch { return; }
-        if (message?.action === 'sendMessage') turn(execution, message.chatInput);
-    });
+        if (message?.action !== 'sendMessage') return;
+        // As the runner sends them on the socket: { name, type, data: 'data:…;base64,…' }.
+        const files = (Array.isArray(message.files) ? message.files : []).slice(0, 10).map((f) => ({
+            name: typeof f?.name === 'string' ? f.name.slice(0, 120) : 'file',
+            size: Math.floor(((typeof f?.data === 'string' ? f.data.split(',')[1] ?? '' : '').length * 3) / 4),
+        }));
+        turn(execution, message.chatInput, files);
+    }, undefined, { maxFrame });
     if (!ws) return;
     // A socket reopened on the same execution (after a button) takes over from the old one.
     execution.ready = Promise.resolve(ws);
     execution.attach(ws);
 });
+
+// A last net: a request the code did not foresee is logged, and the site stays up.
+process.on('unhandledRejection', (error) => console.error('[site] unhandled rejection:', error));
+process.on('uncaughtException', (error) => console.error('[site] uncaught exception:', error));
 
 server.listen(port, () => console.log(`n8n-chat-site on :${port}`));

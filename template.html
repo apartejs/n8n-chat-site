@@ -47,6 +47,43 @@
     </div>
   </section>
 
+  <section id="basics" class="band">
+    <div class="wrap">
+      <h2>{{basics.title}}</h2>
+      <p class="sub">{{basics.sub}}</p>
+      <div class="basics">
+        <article class="basic">
+          <h3>{{basics.buttons.title}}</h3>
+          <p class="muted">{{basics.buttons.text}}</p>
+          <div class="mini" id="mini-buttons"></div>
+          <p class="muted small">{{basics.buttons.how}}</p>
+        </article>
+        <article class="basic">
+          <h3>{{basics.markdown.title}}</h3>
+          <p class="muted">{{basics.markdown.text}}</p>
+          <div class="mini mini--read" id="mini-markdown"></div>
+          <p class="muted small">{{basics.markdown.how}}</p>
+        </article>
+        <article class="basic">
+          <h3>{{basics.files.title}}</h3>
+          <p class="muted">{{basics.files.text}}</p>
+          <div class="mini" id="mini-files"></div>
+          <pre class="code code--small" data-lang="js">createChat({
+  webhookUrl: '…',
+  allowFileUploads: true,
+  allowedFilesMimeTypes: 'image/*,application/pdf',
+});</pre>
+        </article>
+        <article class="basic">
+          <h3>{{basics.errors.title}}</h3>
+          <p class="muted">{{basics.errors.text}}</p>
+          <div class="mini" id="mini-errors"></div>
+          <p class="muted small">{{basics.errors.how}}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <section id="cards" class="band">
     <div class="wrap">
       <h2>{{cards.title}}</h2>
@@ -76,8 +113,8 @@
       <h3 class="own-title">{{cards.own.title}}</h3>
       <p class="sub">{{cards.own.lead}}</p>
       <div class="own">
-        <pre class="code" data-lang="js">import { createChat } from '@aparte/n8n-chat';
-import { defineCard, el } from '@aparte/plugin-cards';
+        <pre class="code" data-lang="js">// The kit from the widget's own module: one aparté for the chat and the card.
+import { createChat, defineCard, el } from '@aparte/n8n-chat';
 
 const ticket = defineCard({
   name: 'ticket',
@@ -124,7 +161,6 @@ createChat({
           <input id="yours-url" class="aparte-field" type="url" inputmode="url" autocomplete="url" placeholder="https://your-n8n.example.com/webhook/…/chat" required>
           <button class="aparte-btn aparte-btn--solid aparte-btn--primary" type="submit">{{yours.connect}}</button>
         </div>
-        <label class="check"><input type="checkbox" id="yours-stream"> {{yours.stream}}</label>
         <p class="status" id="yours-status" role="status" aria-live="polite"></p>
         <p class="muted small">{{yours.need}}</p>
       </form>
@@ -190,6 +226,7 @@ createChat({
         </ul>
         <pre class="code" data-lang="js">import { createChat } from '@aparte/n8n-chat';
 import { setupKatex } from '@aparte/plugin-katex';
+import 'katex/dist/katex.min.css';
 import { setupMermaid } from '@aparte/plugin-mermaid';
 
 createChat({

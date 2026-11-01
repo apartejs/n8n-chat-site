@@ -121,6 +121,82 @@ for (const file of readdirSync(new URL('./i18n/', import.meta.url)).filter((f) =
     check(has(r, '"kind":"booking"'), `booking/${lang}: booked with "${T.bookIt}", with its card`);
     r = await converse('booking', lang, [{ say: t['demo.booking.q3'] }]);
     check(has(r, '14:00'), `booking/${lang}: the afternoon offers afternoon times`);
+    r = await converse('buttons', lang, [{ say: 'hello' }, { click: T.buttonsYes }]);
+    check(has(r, T.buttonsQ, T.buttonsBooked), `buttons/${lang}: asked with "${T.buttonsYes}", answered`);
+}
+
+// The basics: a file is read, a broken workflow fails as n8n's does.
+{
+    const form = new FormData();
+    form.set('action', 'sendMessage');
+    form.set('sessionId', 'test-files');
+    form.set('chatInput', 'here');
+    form.set('metadata', JSON.stringify({ lang: 'en' }));
+    form.append('files', new Blob([new Uint8Array(2048)], { type: 'application/pdf' }), 'invoice.pdf');
+    const res = await fetch(`${base}/webhook/files/chat`, { method: 'POST', body: form });
+    const body = await res.json();
+    check(body.executionStarted === true, 'files: a message with a file starts an execution');
+    const ws = new WebSocket(`${base.replace(/^http/, 'ws')}/chat?sessionId=test-files&executionId=${body.executionId}&isPublic=true`);
+    const said = await new Promise((resolve) => { ws.onmessage = (e) => { resolve(String(e.data)); ws.close(); }; setTimeout(() => resolve(''), 4000); });
+    check(has(said, '**invoice.pdf**', '2 kB'), `files: names the file and its size (${said.slice(0, 60)}…)`);
+    const big = new FormData();
+    big.append('files', new Blob([new Uint8Array(6 * 1024 * 1024)]), 'huge.bin');
+    check((await fetch(`${base}/webhook/files/chat`, { method: 'POST', body: big }).catch(() => ({ status: 413 }))).status === 413, 'files: more than 5 MB is refused');
+    const broken = await fetch(`${base}/webhook/broken/chat`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'sendMessage', sessionId: 'x', chatInput: 'hi' }) });
+    check(broken.status === 500, 'broken: answers 500, as a failed n8n workflow');
+}
+
+// What a stranger can send: the server answers, and is still up after.
+{
+    const net = await import('node:net');
+    const raw = (request) => new Promise((resolve) => {
+        const socket = net.connect(new URL(base).port, '127.0.0.1', () => socket.write(request));
+        let out = '';
+        socket.on('data', (d) => { out += d; });
+        socket.on('close', () => resolve(out));
+        socket.on('error', () => resolve(out));
+        setTimeout(() => { socket.destroy(); resolve(out); }, 3000);
+    });
+    check((await fetch(`${base}/%E0%A4%A`)).status === 400, 'a malformed escape in the path is a 400');
+    check((await raw('GET // HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n')).startsWith('HTTP/1.1 400'), 'a path that is not a URL is a 400');
+    await raw('GET // HTTP/1.1\r\nHost: x\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n');
+    const start = await (await fetch(`${base}/webhook/shop/chat`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'sendMessage', sessionId: 'stranger', chatInput: 'hi' }) })).json();
+    check(/^[0-9a-f-]{36}$/.test(start.executionId), 'an execution id cannot be guessed');
+    const ws = new WebSocket(`${base.replace(/^http/, 'ws')}/chat?sessionId=stranger&executionId=${start.executionId}&isPublic=true`);
+    await new Promise((resolve) => { ws.onopen = resolve; ws.onerror = resolve; });
+    ws.send(JSON.stringify({ action: 'sendMessage', chatInput: { toString: 1, valueOf: 1 } }));
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    ws.close();
+    check((await fetch(`${base}/en/`)).ok, 'the server is still up after all of it');
+    const lang = async (header) => (await fetch(`${base}/`, { redirect: 'manual', headers: { 'accept-language': header } })).headers.get('location');
+    check(await lang('fr; q=0.9, en;q=0.1') === '/fr/', 'Accept-Language: a space before q is read');
+    check(await lang('fr;q=0, de') === '/de/', 'Accept-Language: q=0 is a refusal');
+    check(await lang('zh-TW,zh;q=0.9') === '/zh-CN/', 'Accept-Language: zh after zh-TW gets Simplified');
+    check(await lang('zh-TW') === '/en/', 'Accept-Language: Traditional alone is not sent to Simplified');
+    check(await lang('pt-PT') === '/pt-BR/', 'Accept-Language: pt-PT reads Portuguese');
+}
+
+// The booking card's time is the visitor's, never shifted by the server's zone.
+{
+    const r = await converse('booking', 'en', [{ say: 'Tuesday please' }, { say: '10:00, Ada Lovelace, ada@example.com' }, { click: 'Book it' }]);
+    check(/"start":"\d{4}-\d{2}-\d{2}T10:00:00"/.test(r) && /"end":"\d{4}-\d{2}-\d{2}T10:30:00"/.test(r), 'booking: 10:00 stays 10:00, with no zone to shift it');
+}
+
+// A file sent on the open socket, as the widget sends the next message.
+{
+    const sessionId = 'test-files-socket';
+    const res = await fetch(`${base}/webhook/files/chat`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'sendMessage', sessionId, chatInput: 'hi', metadata: { lang: 'en' } }) });
+    const { executionId } = await res.json();
+    const ws = new WebSocket(`${base.replace(/^http/, 'ws')}/chat?sessionId=${sessionId}&executionId=${executionId}&isPublic=true`);
+    const frames = [];
+    ws.onmessage = (e) => frames.push(String(e.data));
+    await new Promise((resolve) => { ws.onopen = resolve; });
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    const data = `data:image/png;base64,${Buffer.alloc(60 * 1024).toString('base64')}`;
+    ws.send(JSON.stringify({ sessionId, action: 'sendMessage', chatInput: 'and this', files: [{ name: 'photo.png', type: 'image/png', data }] }));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    ws.close();
+    check(frames.some((f) => f.includes('**photo.png**') && f.includes('60')), `files: a 60 kB file on the open socket is read (${frames.at(-1)?.slice(0, 50)}…)`);
 }
 
 console.log(failures ? `\n${failures} failure(s)` : '\nall good');

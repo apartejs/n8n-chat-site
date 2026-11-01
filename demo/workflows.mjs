@@ -25,7 +25,22 @@ for (const file of readdirSync(dir).filter((f) => f.endsWith('.mjs'))) {
     TEXTS[file.slice(0, -4)] = (await import(new URL(`./texts/${file}`, import.meta.url))).default;
 }
 
-const textsOf = (state) => TEXTS[state.lang] ?? TEXTS[(state.lang ?? 'en').split('-')[0]] ?? TEXTS.en;
+/** A language's texts, English for any key it lacks — merged once per language. */
+const merged = new Map();
+const textsOf = (state) => {
+    const lang = TEXTS[state.lang] ? state.lang : TEXTS[(state.lang ?? 'en').split('-')[0]] ? (state.lang ?? 'en').split('-')[0] : 'en';
+    if (!merged.has(lang)) merged.set(lang, { ...TEXTS.en, ...TEXTS[lang], words: { ...TEXTS.en.words, ...TEXTS[lang].words } });
+    return merged.get(lang);
+};
+/**
+ * A time on the visitor's clock, written without a zone: the server's own zone (UTC in the
+ * container) must not move "10:00" — the card reads a zoneless time as the reader's local time.
+ */
+const localTime = (d, minutes) => {
+    const pad = (n) => String(n).padStart(2, '0');
+    const total = minutes;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(Math.floor(total / 60))}:${pad(total % 60)}:00`;
+};
 
 /** A language's words as regular expressions, compiled once. */
 const compiled = new WeakMap();
@@ -175,7 +190,7 @@ function booking(state, text) {
                     say: approved
                         ? T.booked(when, who.name) + card('order', {
                             kind: 'booking', status: 'confirmed', items: [{ title: T.service }],
-                            booking: { start: iso(start), end: iso(new Date(start.getTime() + 30 * 60000)), location: 'Demo studio, 12 rue de la Paix' },
+                            booking: { start: localTime(start, h * 60 + m), end: localTime(start, h * 60 + m + 30), location: 'Demo studio, 12 rue de la Paix' },
                         })
                         : T.otherTime,
                 }],
@@ -184,5 +199,23 @@ function booking(state, text) {
     ];
 }
 
-export const WORKFLOWS = { shop, booking };
+// ── The basics ──────────────────────────────────────────────────────────────
+
+/** Whatever is written, a Chat node asks for an approval with two buttons. */
+function buttons(state) {
+    const T = textsOf(state);
+    return [{ ask: { text: T.buttonsQ, yes: T.buttonsYes, no: T.buttonsNo, then: (approved) => [{ say: approved ? T.buttonsBooked : T.buttonsDeclined }] } }];
+}
+
+/** The files n8n received with the message, named with their sizes. */
+function files(state, text, { files: received = [] } = {}) {
+    const T = textsOf(state);
+    if (!received.length) return [{ say: T.filesNone }];
+    const size = (n) => new Intl.NumberFormat(T.locale, { style: 'unit', unit: n < 1024 * 1024 ? 'kilobyte' : 'megabyte', maximumFractionDigits: 1 })
+        .format(n < 1024 * 1024 ? Math.max(0.1, n / 1024) : n / 1024 / 1024);
+    const list = T.items(received.map((f) => `**${f.name.replace(/[*_`[\]<>]/g, '')}** (${size(f.size)})`));
+    return [{ say: T.filesGot(list) }];
+}
+
+export const WORKFLOWS = { shop, booking, buttons, files };
 export const DEMO_LANGUAGES = Object.keys(TEXTS);

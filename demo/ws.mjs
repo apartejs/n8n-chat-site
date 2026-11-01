@@ -7,8 +7,11 @@ import { createHash } from 'node:crypto';
 
 const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-/** Accepts the upgrade; returns the socket's `send` and `close`, and calls `onText` per message. */
-export function acceptSocket(req, socket, onText, onClose) {
+/**
+ * Accepts the upgrade; returns the socket's `send` and `close`, and calls `onText` per message.
+ * `maxFrame` bounds a message (all its fragments together); past it the socket is dropped.
+ */
+export function acceptSocket(req, socket, onText, onClose, { maxFrame = 64 * 1024 } = {}) {
     const key = req.headers['sec-websocket-key'];
     if (!key) { socket.destroy(); return null; }
     const accept = createHash('sha1').update(key + GUID).digest('base64');
@@ -33,26 +36,40 @@ export function acceptSocket(req, socket, onText, onClose) {
     };
 
     let buffer = Buffer.alloc(0);
+    // A text message sent in fragments: its parts until the one marked final (FIN).
+    let parts = null;
+    let partsLength = 0;
     socket.on('data', (chunk) => {
         buffer = Buffer.concat([buffer, chunk]);
         for (;;) {
             if (buffer.length < 2) return;
+            const fin = (buffer[0] & 0x80) !== 0;
             const opcode = buffer[0] & 0x0f;
             const masked = (buffer[1] & 0x80) !== 0;
+            // A client must mask every frame (RFC 6455 §5.1); one that does not is not a browser.
+            if (!masked) { socket.destroy(); return; }
             let length = buffer[1] & 0x7f;
             let offset = 2;
             if (length === 126) { if (buffer.length < 4) return; length = buffer.readUInt16BE(2); offset = 4; }
             else if (length === 127) { if (buffer.length < 10) return; length = Number(buffer.readBigUInt64BE(2)); offset = 10; }
-            if (length > 64 * 1024) { socket.destroy(); return; }
+            if (length > maxFrame || partsLength + length > maxFrame) { socket.destroy(); return; }
             const maskAt = offset;
-            if (masked) offset += 4;
+            offset += 4;
             if (buffer.length < offset + length) return;
             const data = Buffer.from(buffer.subarray(offset, offset + length));
-            if (masked) for (let i = 0; i < data.length; i++) data[i] ^= buffer[maskAt + (i % 4)];
+            for (let i = 0; i < data.length; i++) data[i] ^= buffer[maskAt + (i % 4)];
             buffer = buffer.subarray(offset + length);
             if (opcode === 0x8) { close(); return; }
             if (opcode === 0x9) { frame(0xa, data); continue; }
-            if (opcode === 0x1) onText(data.toString('utf8'));
+            if (opcode === 0x1 || (opcode === 0x0 && parts)) {
+                parts = opcode === 0x1 ? [data] : [...parts, data];
+                partsLength = opcode === 0x1 ? data.length : partsLength + data.length;
+                if (!fin) continue;
+                const text = Buffer.concat(parts).toString('utf8');
+                parts = null;
+                partsLength = 0;
+                try { onText(text); } catch (error) { console.error('[site] a socket message failed:', error); }
+            }
         }
     });
     socket.on('close', () => { open = false; onClose?.(); });

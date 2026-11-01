@@ -35,6 +35,13 @@ export default {
     // "martedì 3 novembre alle 10:00".
     at: 'alle',
     service: 'Appuntamento, 30 minuti',
+    buttonsQ: 'Le prenoto un tavolo per stasera, alle 20:00?',
+    buttonsYes: 'Prenota',
+    buttonsNo: 'No, grazie',
+    buttonsBooked: 'Fatto: un tavolo per stasera alle 20:00, a suo nome.',
+    buttonsDeclined: "D'accordo, non ho prenotato nulla. Altro?",
+    filesNone: 'Alleghi un file con la graffetta e le dirò cosa ho ricevuto.',
+    filesGot: (list) => `Ho ricevuto ${list}. Un vero workflow ora li leggerebbe: un PDF su cui rispondere, la foto di un pacco danneggiato, un CV.`,
     words: {
         returning: String.raw`restitu|\breso\b|\bresi\b|rimbors|rispedi|\brott[oa]\b|troppo (piccol|grand)`,
         reason: String.raw`troppo (piccol|grand)[aeio]|\brott[oa]\b|danneggiat[oa]|taglia sbagliata|cambiato idea`,

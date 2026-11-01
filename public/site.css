@@ -212,3 +212,15 @@ h1 span { color: var(--teal); }
   .preview-frame { height: 440px; }
   .preview-frame n8n-demo { --n8n-workflow-min-height: 392px; }
 }
+
+/* The basics: each a small chat to try */
+.basics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.basic { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.basic h3 { margin: 0; }
+.basic > p { margin: 0; }
+.mini { height: 320px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--paper); }
+.mini :is(.aparte-n8n__header, .aparte-n8n__footer, .aparte-n8n__welcome) { display: none !important; }
+.mini--read { height: 520px; }
+.mini--read aparte-composer { display: none !important; }
+.code--small { font-size: 12.5px; padding: 14px 16px; }
+@media (max-width: 960px) { .basics { grid-template-columns: minmax(0, 1fr); } }

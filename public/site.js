@@ -52,7 +52,6 @@ function mount({ greet = false } = {}) {
         ...(floating ? {} : { target: host }),
         defaultLanguage: state.lang,
         loadPreviousSession: Boolean(yours),
-        enableStreaming: Boolean(yours && state.yours.stream),
         colorScheme: 'auto',
         // The demo answers in the chat's language; the page's words name it when they match.
         metadata: yours ? { page: location.href } : { lang: state.lang },
@@ -83,19 +82,22 @@ function showWorkflow(name, options) {
     mount(options);
 }
 
-for (const tab of workflowTabs) {
-    tab.addEventListener('click', () => showWorkflow(tab.dataset.workflow));
-    tab.addEventListener('keydown', (e) => {
-        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-        const visible = workflowTabs.filter((x) => !x.hidden);
-        const next = visible[(visible.indexOf(tab) + (e.key === 'ArrowRight' ? 1 : visible.length - 1)) % visible.length];
-        next.focus();
-        showWorkflow(next.dataset.workflow);
-    });
+/** A tab list's keyboard: the arrows move to the next visible tab and choose it, as a click would. */
+function arrows(tabs, choose) {
+    for (const tab of tabs) {
+        tab.addEventListener('click', () => choose(tab));
+        tab.addEventListener('keydown', (e) => {
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            e.preventDefault();
+            const visible = tabs.filter((x) => !x.hidden);
+            const next = visible[(visible.indexOf(tab) + (e.key === 'ArrowRight' ? 1 : visible.length - 1)) % visible.length];
+            next.focus();
+            choose(next);
+        });
+    }
 }
-for (const tab of modeTabs) {
-    tab.addEventListener('click', () => { state.mode = tab.dataset.mode; selectTab(modeTabs, tab); mount(); });
-}
+arrows(workflowTabs, (tab) => showWorkflow(tab.dataset.workflow));
+arrows(modeTabs, (tab) => { state.mode = tab.dataset.mode; selectTab(modeTabs, tab); mount(); });
 for (const link of document.querySelectorAll('[data-open]')) {
     link.addEventListener('click', () => showWorkflow(link.dataset.open));
 }
@@ -127,7 +129,7 @@ let highlight = async (code) => null;
 const settingsCode = document.getElementById('settings-code');
 function settingsSource() {
     const c = COLOURS[state.colour];
-    const lines = ['createChat({', `  webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',`];
+    const lines = ['createChat({', `  webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',`, `  colorScheme: 'auto',`];
     if (state.lang !== 'en') lines.push(`  defaultLanguage: '${state.lang}',`);
     if (state.mode === 'embedded') lines.push(`  mode: 'embedded',`, `  target: '#support-chat',`);
     lines.push('});');
@@ -142,16 +144,30 @@ async function renderSettings() {
     if (html && settingsCode.textContent === source) settingsCode.innerHTML = html;
 }
 
+// ── The basics: small chats, each on its own demo workflow ───────────────────
+const mini = (id, options) => createChat({
+    target: `#${id}`, mode: 'embedded', loadPreviousSession: false, colorScheme: 'auto',
+    defaultLanguage: t.lang, metadata: { lang: t.lang }, initialMessages: [], ...options,
+});
+mini('mini-buttons', { webhookUrl: '/webhook/buttons/chat', initialMessages: [t['basics.buttons.greeting']] });
+mini('mini-markdown', {
+    webhookUrl: '/webhook/shop/chat',
+    messageHistory: [{ sender: 'user', text: t['basics.markdown.q'] }, { sender: 'bot', text: t['basics.markdown.a'] }],
+});
+mini('mini-files', {
+    webhookUrl: '/webhook/files/chat', initialMessages: [t['basics.files.greeting']],
+    allowFileUploads: true, allowedFilesMimeTypes: 'image/*,application/pdf',
+});
+mini('mini-errors', { webhookUrl: '/webhook/broken/chat', initialMessages: [t['basics.errors.greeting']] });
+
 // ── "Your n8n" ──────────────────────────────────────────────────────────────
 const form = document.getElementById('yours-form');
 const urlInput = document.getElementById('yours-url');
-const streamInput = document.getElementById('yours-stream');
 const status = document.getElementById('yours-status');
 const yoursTab = workflowTabs.find((tab) => tab.dataset.workflow === 'yours');
 const say = (text, tone = '') => { status.textContent = text; status.dataset.tone = tone; };
 if (state.yours) {
     urlInput.value = state.yours.url;
-    streamInput.checked = Boolean(state.yours.stream);
     yoursTab.hidden = false;
 }
 
@@ -174,7 +190,7 @@ form.addEventListener('submit', async (e) => {
         say(local ? t['yours.err.local'] : t['yours.err.cors'], 'error');
         return;
     }
-    state.yours = { url: url.href, stream: streamInput.checked };
+    state.yours = { url: url.href };
     try { localStorage.setItem(YOURS_KEY, JSON.stringify(state.yours)); } catch { /* private mode */ }
     yoursTab.hidden = false;
     say(t['yours.ok'], 'ok');

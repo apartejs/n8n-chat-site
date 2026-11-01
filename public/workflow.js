@@ -12,21 +12,12 @@ document.getElementById('site-lang')?.addEventListener('change', (e) => { locati
 for (const el of document.querySelectorAll('[data-if-live]')) el.hidden = !live;
 for (const el of document.querySelectorAll('[data-if-nolive]')) el.hidden = live;
 
-// The workflow, as n8n shows it: <n8n-demo>, n8n's own preview, fed the JSON this page offers.
-const json = await fetch(main.dataset.json).then((r) => r.text());
-await import(cdn('@n8n_io/n8n-demo-component@1.0.20/+esm'));
-const preview = document.createElement('n8n-demo');
-preview.setAttribute('workflow', json);
-preview.setAttribute('frame', 'true');
-preview.setAttribute('clicktointeract', 'true');
-preview.setAttribute('collapseformobile', 'false');
-if (matchMedia('(prefers-color-scheme: dark)').matches) preview.setAttribute('theme', 'dark');
-document.getElementById('preview').append(preview);
-
 if (live) {
-        const { createChat } = await import(document.documentElement.dataset.widget);
+    const { createChat } = await import(document.documentElement.dataset.widget);
     const chat = createChat({
         webhookUrl: `/webhook/${id}/chat`, target: '#demo-chat', mode: 'embedded', loadPreviousSession: false, colorScheme: 'auto',
+        // The shop asks for a photo of a damaged item, as its workflow's Chat Trigger allows.
+        ...(id === 'shop' ? { allowFileUploads: true, allowedFilesMimeTypes: 'image/*' } : {}),
         defaultLanguage: t.lang, metadata: { lang: t.lang },
         initialMessages: [t[`demo.${id}.greeting`]],
         i18n: { [t.lang]: { title: t[`demo.${id}.title`], subtitle: t[`demo.${id}.subtitle`], inputPlaceholder: t['demo.placeholder'] } },
@@ -39,6 +30,17 @@ if (live) {
         tryRow.append(b);
     }
 }
+
+// The workflow, as n8n shows it: <n8n-demo>, n8n's own preview, fed the JSON this page offers.
+const json = await fetch(main.dataset.json).then((r) => r.text());
+await import(cdn('@n8n_io/n8n-demo-component@1.0.20/+esm')).catch(() => null);
+const preview = document.createElement('n8n-demo');
+preview.setAttribute('workflow', json);
+preview.setAttribute('frame', 'true');
+preview.setAttribute('clicktointeract', 'true');
+preview.setAttribute('collapseformobile', 'false');
+if (matchMedia('(prefers-color-scheme: dark)').matches) preview.setAttribute('theme', 'dark');
+document.getElementById('preview').append(preview);
 
 // The setup snippet, coloured by aparté's Shiki provider.
 const [core, shikiPlugin, shikiCore, engine, html, light, dark] = await Promise.all([

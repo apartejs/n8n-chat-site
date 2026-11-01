@@ -33,6 +33,13 @@ export default {
     otherTime: 'Pas de souci. Quel autre jour ou horaire vous convient ?',
     at: 'à',
     service: 'Rendez-vous, 30 minutes',
+    buttonsQ: 'Je vous réserve une table pour ce soir, à 20 h ?',
+    buttonsYes: 'Réserver',
+    buttonsNo: 'Non merci',
+    buttonsBooked: "C'est fait : une table pour ce soir à 20 h, à votre nom.",
+    buttonsDeclined: 'Très bien, rien de réservé. Autre chose ?',
+    filesNone: "Joignez un fichier avec le trombone, et je vous dirai ce que j'ai reçu.",
+    filesGot: (list) => `J'ai reçu ${list}. Un vrai workflow le lirait maintenant : un PDF sur lequel répondre, la photo d'un colis abîmé, un CV.`,
     words: {
         returning: String.raw`retour|retourner|renvoy|rembours|trop (petit|grand)|cass`,
         reason: String.raw`trop (petit|grand)e?|cassée?|abîmée?|pas la bonne taille|changé d'avis`,

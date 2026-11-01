@@ -35,6 +35,13 @@ export default {
     // "martes, 3 de noviembre a las 10:00".
     at: 'a las',
     service: 'Cita, 30 minutos',
+    buttonsQ: '¿Le reservo una mesa para esta noche, a las 20:00?',
+    buttonsYes: 'Reservar',
+    buttonsNo: 'No, gracias',
+    buttonsBooked: 'Hecho: una mesa para esta noche a las 20:00, a su nombre.',
+    buttonsDeclined: 'De acuerdo, no se ha reservado nada. ¿Algo más?',
+    filesNone: 'Adjunte un archivo con el clip y le diré qué he recibido.',
+    filesGot: (list) => `He recibido ${list}. Un workflow real los leería ahora: un PDF sobre el que responder, la foto de un paquete dañado, un CV.`,
     words: {
         returning: String.raw`devol|reembols|(enviar|mandar)(lo|la)? de vuelta|\brot[oa]\b|(demasiado|muy) (peque|grande)`,
         reason: String.raw`(demasiado|muy) (pequeñ[oa]|grande)|me queda (pequeñ|grande)[oa]|\brot[oa]\b|dañad[oa]|talla (equivocada|incorrecta)|cambié de opinión`,

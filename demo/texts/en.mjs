@@ -37,6 +37,14 @@ export default {
     // "Tuesday 3 November at 10:00": the word between the day and the time.
     at: 'at',
     service: 'Appointment, 30 minutes',
+    // The small demos of "the basics": a Chat node's buttons, and files received.
+    buttonsQ: 'Shall I book you a table for tonight, at 20:00?',
+    buttonsYes: 'Book it',
+    buttonsNo: 'No thanks',
+    buttonsBooked: 'Done: a table for tonight at 20:00, under your name.',
+    buttonsDeclined: 'All right, nothing booked. Anything else?',
+    filesNone: 'Attach a file with the paperclip, and I will tell you what I received.',
+    filesGot: (list) => `I received ${list}. A real workflow would read them now: a PDF to answer about, a photo of a damaged parcel, a CV.`,
     // Regular expressions (as strings, case-insensitive) the visitor's message is matched on.
     words: {
         returning: String.raw`\b(return|send (it )?back|refund|broken)\b|too (small|big|large)`,

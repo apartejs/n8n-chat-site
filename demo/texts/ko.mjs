@@ -38,6 +38,13 @@ export default {
     // No word between the date and the time.
     at: '',
     service: '예약, 30분',
+    buttonsQ: '오늘 저녁 20:00에 테이블을 예약해 드릴까요?',
+    buttonsYes: '예약하기',
+    buttonsNo: '괜찮습니다',
+    buttonsBooked: '완료되었습니다: 오늘 저녁 20:00, 고객님 성함으로 테이블이 예약되었습니다.',
+    buttonsDeclined: '알겠습니다. 예약하지 않았습니다. 더 필요하신 것이 있으신가요?',
+    filesNone: '클립 아이콘으로 파일을 첨부해 주시면 받은 내용을 알려 드리겠습니다.',
+    filesGot: (list) => `받은 파일: ${list}. 실제 워크플로라면 지금 이것을 읽을 것입니다: 답변할 PDF, 파손된 택배 사진, 이력서.`,
     words: {
         returning: String.raw`반품|환불|반송|돌려보|망가|고장|너무 (작|크|커)`,
         reason: String.raw`너무 (작|크|커)[가-힣]*|망가[가-힣]*|고장[가-힣]*|파손[가-힣]*|마음이 바뀌[가-힣]*`,
