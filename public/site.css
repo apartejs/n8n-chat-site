@@ -95,8 +95,17 @@ h1 span { color: var(--teal); }
 .demo[hidden], .floating-note[hidden] { display: none; }
 .floating-note { height: 580px; border-radius: 18px; border: 2px dashed var(--line); display: grid; place-items: center; text-align: center; color: var(--ink-2); padding: 24px; }
 .floating-note strong { display: block; font: 700 22px var(--display); color: var(--ink); margin-bottom: 6px; }
-.controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; font-size: 13px; color: var(--ink-2); }
-.controls label, .swatches { display: inline-flex; align-items: center; gap: 8px; }
+/* The configurator: one labelled row per choice, the code a click away. */
+.config { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 10px 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); font-size: 13px; }
+.config-label { color: var(--ink-2); font-weight: 600; }
+.config-foot { grid-column: 1 / -1; display: flex; justify-content: flex-end; padding-top: 4px; border-top: 1px solid var(--line); }
+.swatches { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.config-dialog { width: min(680px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); color: inherit; }
+.config-dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+.config-dialog__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.config-dialog__head h2 { margin: 0; font-size: 20px; }
+.config-dialog__foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+.config-dialog .code { margin: 0; overflow-x: auto; }
 .swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--paper); box-shadow: 0 0 0 1px var(--line); cursor: pointer; padding: 0; }
 .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); }
 .swatch:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
@@ -109,7 +118,7 @@ h1 span { color: var(--teal); }
 /* One rule each: a list with a pseudo-element the browser does not know drops the whole rule. */
 .swatch--custom.is-on::-webkit-color-swatch { opacity: 1; }
 .swatch--custom.is-on::-moz-color-swatch { opacity: 1; }
-.accent-note { flex-basis: 100%; margin: 0; font-size: 12.5px; color: #b45309; }
+.accent-note { margin: 6px 0 0; font-size: 12.5px; color: #b45309; }
 .try { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
 .made { text-align: center; font-size: 13px; color: var(--ink-2); margin: 4px 0 0; }
 .made a { color: inherit; }

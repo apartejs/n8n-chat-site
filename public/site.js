@@ -46,7 +46,8 @@ function darkVars() {
 function colourVars() {
     const s = SURFACES[state.surface](state.accent);
     return [
-        state.accent !== DEFAULT_ACCENT && ['--chat--color--secondary', state.accent, 'your bubble, the send button, the corner button'],
+        // Always written, the default too: unset, the corner button falls back to n8n's pink.
+        ['--chat--color--secondary', state.accent, 'your bubble, the send button, the corner button'],
         s.header && ['--chat--header--background', s.header, 'the title bar, in light and dark'],
         s.body && ['--chat--body--background', s.body, 'behind the messages, in light'],
     ].filter(Boolean);
@@ -210,12 +211,27 @@ function settingsSource() {
     }
     return [...lines, ...css].join('\n');
 }
+// The same code twice: in its section, and in the dialog the configurator opens.
+const settingsDialogCode = document.getElementById('settings-code-dialog');
 async function renderSettings() {
     const source = settingsSource();
-    settingsCode.textContent = source;
+    for (const pre of [settingsCode, settingsDialogCode]) pre.textContent = source;
     const html = await highlight(source, 'js');
-    if (html && settingsCode.textContent === source) settingsCode.innerHTML = html;
+    for (const pre of [settingsCode, settingsDialogCode]) if (html && pre.textContent === source) pre.innerHTML = html;
 }
+const configDialog = document.getElementById('config-dialog');
+document.getElementById('show-config').addEventListener('click', () => configDialog.showModal());
+document.getElementById('config-close').addEventListener('click', () => configDialog.close());
+// A click on the backdrop (the dialog itself, outside its box) closes it too.
+configDialog.addEventListener('click', (e) => { if (e.target === configDialog) configDialog.close(); });
+const copyButton = document.getElementById('config-copy');
+copyButton.addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText(settingsSource());
+        copyButton.textContent = t['demo.copied'];
+        setTimeout(() => { copyButton.textContent = t['demo.copy']; }, 1500);
+    } catch { /* a browser that refuses the clipboard leaves the code selectable */ }
+});
 
 // ── The basics: small chats, each on its own demo workflow ───────────────────
 const mini = (id, options) => createChat({
@@ -370,3 +386,5 @@ example('convo-ticket', [
 ], ticketCard);
 // The examples are made in 'auto': the scheme picked meanwhile, if any.
 applyScheme();
+// The palette from the start: the default colour written too, so the corner button is not n8n's pink.
+applyPalette();

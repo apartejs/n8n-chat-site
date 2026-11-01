@@ -89,7 +89,9 @@ for (const lang of LANGS) {
             ogLocale: OG_LOCALES[lang] ?? lang.replace('-', '_'),
             // What public/site.js writes there before any choice, so the page reads the same without it.
             'settings.code': ['createChat({', "  webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',", "  colorScheme: 'auto',",
-                ...(lang === 'en' ? [] : [`  defaultLanguage: '${lang}',`]), "  mode: 'embedded',", "  target: '#support-chat',", '});'].join('\n'),
+                ...(lang === 'en' ? [] : [`  defaultLanguage: '${lang}',`]), "  mode: 'embedded',", "  target: '#support-chat',", '});',
+                '', "/* In your stylesheet: n8n's own variables. */", ':root {',
+                '  --chat--color--secondary: #178272; /* your bubble, the send button, the corner button */', '}'].join('\n'),
             alternates: [...LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="https://n8n-chat.apartejs.dev/${l}/${page.path}">`),
                 `<link rel="alternate" hreflang="x-default" href="https://n8n-chat.apartejs.dev/en/${page.path}">`].join('\n'),
             languages: LANGS.map((l) => `<option value="${l}"${l === lang ? ' selected' : ''}>${dictionaries[l].name}</option>`).join(''),

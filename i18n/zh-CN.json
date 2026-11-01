@@ -195,5 +195,12 @@
   "demo.surface.tinted": "着色",
   "demo.custom": "自定义颜色",
   "demo.contrast": "此颜色上的白色文字：{ratio}:1，低于易读的 4.5:1。请试试更深的颜色。",
-  "why.weight.n8n": "~471 KB"
+  "why.weight.n8n": "~471 KB",
+  "demo.config.label": "配置聊天",
+  "demo.place": "位置",
+  "demo.config": "查看代码",
+  "demo.config.title": "你的配置",
+  "demo.close": "关闭",
+  "demo.copy": "复制",
+  "demo.copied": "已复制"
 }

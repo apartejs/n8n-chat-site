@@ -195,5 +195,12 @@
   "demo.surface.tinted": "カラー",
   "demo.custom": "お好みの色",
   "demo.contrast": "この色の上の白い文字：{ratio}:1。読みやすい 4.5:1 を下回っています。もう少し濃い色をお試しください。",
-  "why.weight.n8n": "~471 KB"
+  "why.weight.n8n": "~471 KB",
+  "demo.config.label": "チャットを設定",
+  "demo.place": "表示位置",
+  "demo.config": "コードを見る",
+  "demo.config.title": "あなたの設定",
+  "demo.close": "閉じる",
+  "demo.copy": "コピー",
+  "demo.copied": "コピーしました"
 }

@@ -195,5 +195,12 @@
   "demo.surface.tinted": "Tinted",
   "demo.custom": "Your own color",
   "demo.contrast": "White text on this color: {ratio}:1, under the 4.5:1 that reads well. Try it darker.",
-  "why.weight.n8n": "~471 KB"
+  "why.weight.n8n": "~471 KB",
+  "demo.config.label": "Configure the chat",
+  "demo.place": "Placement",
+  "demo.config": "See the code",
+  "demo.config.title": "Your configuration",
+  "demo.close": "Close",
+  "demo.copy": "Copy",
+  "demo.copied": "Copied"
 }

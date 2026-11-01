@@ -195,5 +195,12 @@
   "demo.surface.tinted": "Tingido",
   "demo.custom": "Sua cor",
   "demo.contrast": "Texto branco sobre esta cor: {ratio}:1, abaixo dos 4,5:1 que se leem bem. Tente uma mais escura.",
-  "why.weight.n8n": "~471 KB"
+  "why.weight.n8n": "~471 KB",
+  "demo.config.label": "Configurar o chat",
+  "demo.place": "Posição",
+  "demo.config": "Ver o código",
+  "demo.config.title": "Sua configuração",
+  "demo.close": "Fechar",
+  "demo.copy": "Copiar",
+  "demo.copied": "Copiado"
 }

@@ -24,26 +24,37 @@
       </div>
       <div id="demo-chat" class="demo" role="tabpanel"></div>
       <div id="floating-note" class="floating-note" hidden><div><strong>{{demo.floating.title}}</strong>{{demo.floating.text}}</div></div>
-      <div class="controls">
-        <label>{{demo.language}} <select id="chat-lang"></select></label>
-        <span class="swatches" role="group" aria-label="{{demo.colour}}" id="colours">{{demo.colour}}</span>
-        <div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.surface}}" id="surface-tabs">
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-surface="n8n">{{demo.surface.n8n}}</button>
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="neutral">{{demo.surface.neutral}}</button>
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="warm">{{demo.surface.warm}}</button>
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="tinted">{{demo.surface.tinted}}</button>
-        </div>
-        <p class="accent-note" id="accent-note" role="status" hidden></p>
-        <div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.where}}" id="mode-tabs">
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-mode="embedded">{{demo.embedded}}</button>
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-mode="window">{{demo.floating}}</button>
-        </div>
-        <div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.scheme}}" id="scheme-tabs">
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-scheme="light">{{demo.scheme.light}}</button>
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-scheme="dark">{{demo.scheme.dark}}</button>
-          <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-scheme="auto">{{demo.scheme.auto}}</button>
-        </div>
+      <div class="config" aria-label="{{demo.config.label}}" role="group">
+        <span class="config-label" id="lbl-lang">{{demo.language}}</span>
+        <div><select id="chat-lang" aria-labelledby="lbl-lang"></select></div>
+        <span class="config-label">{{demo.colour}}</span>
+        <div><span class="swatches" role="group" aria-label="{{demo.colour}}" id="colours"></span><p class="accent-note" id="accent-note" role="status" hidden></p></div>
+        <span class="config-label">{{demo.surface}}</span>
+        <div><div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.surface}}" id="surface-tabs">
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-surface="n8n">{{demo.surface.n8n}}</button>
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="neutral">{{demo.surface.neutral}}</button>
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="warm">{{demo.surface.warm}}</button>
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-surface="tinted">{{demo.surface.tinted}}</button>
+          </div></div>
+        <span class="config-label">{{demo.scheme}}</span>
+        <div><div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.scheme}}" id="scheme-tabs">
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-scheme="light">{{demo.scheme.light}}</button>
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-scheme="dark">{{demo.scheme.dark}}</button>
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-scheme="auto">{{demo.scheme.auto}}</button>
+          </div></div>
+        <span class="config-label">{{demo.place}}</span>
+        <div><div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.where}}" id="mode-tabs">
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-mode="embedded">{{demo.embedded}}</button>
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-mode="window">{{demo.floating}}</button>
+          </div></div>
+        <div class="config-foot"><button type="button" class="aparte-btn aparte-btn--solid aparte-btn--primary aparte-btn--sm" id="show-config">{{demo.config}}</button></div>
       </div>
+      <dialog class="config-dialog" id="config-dialog" aria-labelledby="config-dialog-title">
+        <div class="config-dialog__head"><h2 id="config-dialog-title">{{demo.config.title}}</h2><button type="button" class="aparte-btn aparte-btn--ghost aparte-btn--sm" id="config-close">{{demo.close}}</button></div>
+        <p class="sub">{{code.sub}}</p>
+        <pre class="code" data-lang="js" id="settings-code-dialog">{{settings.code}}</pre>
+        <div class="config-dialog__foot"><button type="button" class="aparte-btn aparte-btn--solid aparte-btn--primary aparte-btn--sm" id="config-copy">{{demo.copy}}</button></div>
+      </dialog>
       <div class="try" id="try"><span>{{demo.try}}</span></div>
       <p class="made">{{demo.made}}</p>
     </div>

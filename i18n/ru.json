@@ -195,5 +195,12 @@
   "demo.surface.tinted": "Оттенок",
   "demo.custom": "Ваш цвет",
   "demo.contrast": "Белый текст на этом цвете: {ratio}:1, ниже хорошо читаемых 4,5:1. Попробуйте темнее.",
-  "why.weight.n8n": "~471 КБ"
+  "why.weight.n8n": "~471 КБ",
+  "demo.config.label": "Настроить чат",
+  "demo.place": "Размещение",
+  "demo.config": "Показать код",
+  "demo.config.title": "Ваша конфигурация",
+  "demo.close": "Закрыть",
+  "demo.copy": "Копировать",
+  "demo.copied": "Скопировано"
 }

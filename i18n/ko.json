@@ -195,5 +195,12 @@
   "demo.surface.tinted": "색조",
   "demo.custom": "원하는 색",
   "demo.contrast": "이 색 위의 흰 글자: {ratio}:1, 잘 읽히는 4.5:1보다 낮습니다. 더 어두운 색을 써 보세요.",
-  "why.weight.n8n": "~471 KB"
+  "why.weight.n8n": "~471 KB",
+  "demo.config.label": "채팅 설정",
+  "demo.place": "위치",
+  "demo.config": "코드 보기",
+  "demo.config.title": "내 설정",
+  "demo.close": "닫기",
+  "demo.copy": "복사",
+  "demo.copied": "복사됨"
 }
