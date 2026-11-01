@@ -241,7 +241,8 @@ renderSettings();
 // ── Example conversations: the widget, already talking, without header or field ──
 const ticketCard = (config) => defineCard({
     name: 'ticket', variants: ['card'],
-    styles: '.aparte-ticket-card .t-id { font-weight: 700 }',
+    // A card draws its own padding, from the kit's variable, as the shipped cards do.
+    styles: '.aparte-ticket-card { padding: var(--aparte-rich-card-padding) } .aparte-ticket-card .t-id { font-weight: 700 } .aparte-ticket-card p { margin: 4px 0 }',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/></svg>',
     normalize: (raw) => (raw?.id ? raw : null),
     render: (x) => [el('div', { class: 't-id', text: `Ticket ${x.id}` }), el('p', { text: x.subject }), el('small', { text: x.status })],

@@ -119,7 +119,8 @@ import { createChat, defineCard, el } from '@aparte/n8n-chat';
 const ticket = defineCard({
   name: 'ticket',
   variants: ['card'],
-  styles: `.aparte-ticket-card .t-id { font-weight: 700 }`,
+  styles: `.aparte-ticket-card { padding: var(--aparte-rich-card-padding) }
+           .aparte-ticket-card .t-id { font-weight: 700 }`,
   icon: '&lt;svg viewBox="0 0 24 24"&gt;…&lt;/svg&gt;',
   normalize: (raw) =&gt; (raw?.id ? raw : null),
   render: (t) =&gt; [
