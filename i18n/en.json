@@ -14,7 +14,7 @@
   "hero.lead": "A drop-in replacement for n8n's own widget: same setup, same Chat Trigger. Your workflow answers with cards, asks for a yes with buttons, and the chat speaks ten languages.",
   "hero.install": "Install in one tag",
   "hero.yours": "Try it with your n8n",
-  "proof.weight": "~143 KB",
+  "proof.weight": "~151 KB",
   "proof.weight.label": "first load, vs ~471 KB",
   "proof.languages": "10",
   "proof.languages.label": "languages",

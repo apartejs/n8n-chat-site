@@ -39,7 +39,14 @@ async function converse(workflow, lang, steps) {
             const button = buttons?.find((b) => b.text === step.click);
             if (!button) { heard.push(`(no button ${step.click})`); break; }
             buttons = null;
-            const res = await fetch(new URL(button.link, base));
+            const link = new URL(button.link, base);
+            // n8n's own shape, which the widget asks of a button before it shows it.
+            check(/^\/webhook-waiting\/\d{1,20}\/[\w-]+$/.test(link.pathname) && /^approved=(true|false)&signature=[0-9a-f]{64}$/.test(link.search.slice(1)),
+                `${workflow}/${lang}: the "${step.click}" link is n8n's waiting link, signed`);
+            const forged = new URL(link);
+            forged.searchParams.set('signature', '0'.repeat(64));
+            check((await fetch(forged)).status === 404, `${workflow}/${lang}: the "${step.click}" link with another signature is refused`);
+            const res = await fetch(link);
             check(res.ok, `${workflow}/${lang}: the "${step.click}" link answers 200`);
             await listen();
             continue;
@@ -193,7 +200,7 @@ for (const file of readdirSync(new URL('./i18n/', import.meta.url)).filter((f) =
     check(odd.startsWith('HTTP/1.1 400') || (secure && odd.startsWith('HTTP/1.1 302')), 'a path that is not a URL is answered (400, or cleaned by the proxy)');
     await raw('GET // HTTP/1.1\r\nHost: x\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n');
     const start = await (await fetch(`${base}/webhook/shop/chat`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'sendMessage', sessionId: 'stranger', chatInput: 'hi' }) })).json();
-    check(/^[0-9a-f-]{36}$/.test(start.executionId), 'an execution id cannot be guessed');
+    check(/^\d{10,20}$/.test(start.executionId), 'an execution id is a number, as n8n\'s, and cannot be guessed (64 random bits)');
     const ws = new WebSocket(`${base.replace(/^http/, 'ws')}/chat?sessionId=stranger&executionId=${start.executionId}&isPublic=true`);
     await new Promise((resolve) => { ws.onopen = resolve; ws.onerror = resolve; });
     ws.send(JSON.stringify({ action: 'sendMessage', chatInput: { toString: 1, valueOf: 1 } }));

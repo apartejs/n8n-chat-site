@@ -5,13 +5,18 @@
  *   POST /webhook/<shop|booking>/chat   → { executionStarted, executionId, resumeToken }
  *   WS   /chat?sessionId&executionId    → the Chat nodes' messages, "n8n|continue" between them,
  *                                         and { type: 'with-buttons' } for an approval
- *   GET  /webhook-waiting/<id>/<n>      → a button: the execution goes on, on the same socket
+ *   GET  /webhook-waiting/<id>/<node>?approved=true|false&signature=<64 hex>
+ *                                       → a button: the execution goes on, on the same socket
+ *
+ * The id and the links have n8n's exact shapes, because the widget follows nothing else: an
+ * answer that only looks like n8n's hand-over is shown as text, and a button whose link is not
+ * a signed waiting link is not shown.
  *
  * No model, no key: the demo never goes down and costs nothing. Zero dependencies:
  * `node server.mjs` (PORT, default 3000).
  */
 import { createServer } from 'node:http';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +26,7 @@ import { WORKFLOWS } from './demo/workflows.mjs';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const root = join(here, 'public');
 /** The widget the page loads, pinned: an `@0` range is cached by browsers for days. */
-const WIDGET = '0.5.0';
+const WIDGET = '1.0.0';
 /**
  * Where the widget comes from: jsDelivr, or — to try a build before it is published — a folder
  * this server serves (`WIDGET_SRC=/_widget node server.mjs`, with dist/cdn and style.css in it).
@@ -171,17 +176,22 @@ const executions = new Map();
 
 /** Plays a turn's steps on the execution's socket, as Chat nodes send them. */
 async function play(execution, steps) {
-    const socket = await execution.ready;
     for (const [i, step] of steps.entries()) {
         await wait(i === 0 ? 700 : 500);
+        // Read after the wait, at each step: a socket that reopened meanwhile (the widget
+        // resumes a button on a new one when the old one dropped) is the one to speak on.
+        const socket = await execution.ready;
         if (!socket.open) return;
         if (step.say) {
             socket.send(step.say);
             if (i < steps.length - 1) socket.send('n8n|continue');
         } else if (step.ask) {
+            // n8n's link: the node's id, then `approved` and a signature, which a click must
+            // bring back for the execution to go on.
             const n = randomUUID();
-            execution.pending = { n, then: step.ask.then };
-            const link = (approved) => `/webhook-waiting/${execution.id}/${n}?approved=${approved}`;
+            const signature = randomBytes(32).toString('hex');
+            execution.pending = { n, signature, then: step.ask.then };
+            const link = (approved) => `/webhook-waiting/${execution.id}/${n}?approved=${approved}&signature=${signature}`;
             socket.send(JSON.stringify({
                 type: 'with-buttons', text: step.ask.text, blockUserInput: true,
                 buttons: [
@@ -195,8 +205,9 @@ async function play(execution, steps) {
 }
 
 function newExecution(workflow, sessionId) {
-    // Unguessable: the id is all a socket needs to take an execution's frames.
-    const execution = { id: randomUUID(), workflow, sessionId, pending: null };
+    // A number, as n8n's execution ids are, but 64 random bits of one: the id is all a socket
+    // needs to take an execution's frames, so it cannot be guessed.
+    const execution = { id: BigInt(`0x${randomBytes(8).toString('hex')}`).toString(), workflow, sessionId, pending: null };
     execution.ready = new Promise((resolve) => { execution.attach = resolve; });
     executions.set(execution.id, execution);
     if (executions.size > MAX_KEPT) executions.delete(executions.keys().next().value);
@@ -276,10 +287,10 @@ async function answer(req, res, workflow, limit) {
     json({ executionStarted: true, executionId: execution.id, resumeToken: 'demo' });
 }
 
-function button(res, executionId, n, approved) {
+function button(res, executionId, n, approved, signature) {
     const execution = executions.get(executionId);
     const pending = execution?.pending;
-    if (!pending || pending.n !== n) { res.writeHead(404).end(); return; }
+    if (!pending || pending.n !== n || signature !== pending.signature) { res.writeHead(404).end(); return; }
     execution.pending = null;
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end('<p>Got it.</p>');
     void play(execution, pending.then(approved));
@@ -300,7 +311,7 @@ const server = createServer(async (req, res) => {
         return;
     }
     const waiting = url.pathname.match(/^\/webhook-waiting\/([^/]+)\/([^/]+)$/);
-    if (waiting) return button(res, waiting[1], waiting[2], url.searchParams.get('approved') === 'true');
+    if (waiting) return button(res, waiting[1], waiting[2], url.searchParams.get('approved') === 'true', url.searchParams.get('signature'));
 
     if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405).end(); return; }
     if (url.pathname === '/robots.txt' || url.pathname === '/sitemap.xml') {
