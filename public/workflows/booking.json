@@ -226,13 +226,11 @@
       "parameters": {
         "model": {
           "__rl": true,
-          "value": "gpt-4o-mini",
+          "value": "gpt-6-luna",
           "mode": "list"
         },
-        "responsesApiEnabled": false,
-        "options": {
-          "temperature": 0.2
-        }
+        "responsesApiEnabled": true,
+        "options": {}
       }
     },
     {
