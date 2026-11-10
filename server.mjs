@@ -26,7 +26,7 @@ import { WORKFLOWS } from './demo/workflows.mjs';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const root = join(here, 'public');
 /** The widget the page loads, pinned: an `@0` range is cached by browsers for days. */
-const WIDGET = '1.0.0';
+const WIDGET = '1.0.1';
 /**
  * Where the widget comes from: jsDelivr, or — to try a build before it is published — a folder
  * this server serves (`WIDGET_SRC=/_widget node server.mjs`, with dist/cdn and style.css in it).

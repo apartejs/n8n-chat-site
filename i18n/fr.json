@@ -14,7 +14,7 @@
   "hero.lead": "Il remplace le widget de n8n sans rien changer : même configuration, même Chat Trigger. Votre workflow répond avec des cartes, demande un oui avec des boutons, et le chat parle dix langues.",
   "hero.install": "L'installer en une balise",
   "hero.yours": "L'essayer avec votre n8n",
-  "proof.weight": "~151 Ko",
+  "proof.weight": "~155 Ko",
   "proof.weight.label": "au premier chargement, contre ~471 Ko",
   "proof.languages": "10",
   "proof.languages.label": "langues",

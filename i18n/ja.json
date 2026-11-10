@@ -14,7 +14,7 @@
   "hero.lead": "n8n 標準のウィジェットをそのまま置き換えられます。設定も Chat Trigger も同じです。ワークフローはカードで答え、ボタンで「はい」を確認し、チャットは 10 言語を話します。",
   "hero.install": "タグ 1 つで導入",
   "hero.yours": "自分の n8n で試す",
-  "proof.weight": "~151 KB",
+  "proof.weight": "~155 KB",
   "proof.weight.label": "初回読み込み。従来は ~471 KB",
   "proof.languages": "10",
   "proof.languages.label": "言語",

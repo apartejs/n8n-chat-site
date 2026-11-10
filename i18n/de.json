@@ -14,7 +14,7 @@
   "hero.lead": "Es ersetzt das Widget von n8n, ohne dass sich etwas ändert: gleiche Konfiguration, gleicher Chat Trigger. Ihr Workflow antwortet mit Karten, fragt per Button nach einem Ja und der Chat spricht zehn Sprachen.",
   "hero.install": "Mit einem Tag installieren",
   "hero.yours": "Mit Ihrem n8n ausprobieren",
-  "proof.weight": "~151 KB",
+  "proof.weight": "~155 KB",
   "proof.weight.label": "beim ersten Laden, statt ~471 KB",
   "proof.languages": "10",
   "proof.languages.label": "Sprachen",

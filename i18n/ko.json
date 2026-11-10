@@ -14,7 +14,7 @@
   "hero.lead": "n8n 기본 위젯을 아무것도 바꾸지 않고 대체합니다. 설정도 Chat Trigger도 그대로입니다. 워크플로가 카드로 답하고, 버튼으로 '예'를 묻고, 채팅은 열 개 언어로 말합니다.",
   "hero.install": "태그 하나로 설치",
   "hero.yours": "내 n8n으로 써 보기",
-  "proof.weight": "~151 KB",
+  "proof.weight": "~155 KB",
   "proof.weight.label": "첫 로딩 기준, 기존 ~471 KB",
   "proof.languages": "10",
   "proof.languages.label": "개 언어",

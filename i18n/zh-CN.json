@@ -14,7 +14,7 @@
   "hero.lead": "无需改动即可替换 n8n 自带的组件：配置相同，Chat Trigger 相同。你的工作流用卡片回答，用按钮请求确认，聊天支持十种语言。",
   "hero.install": "一个标签即可安装",
   "hero.yours": "用你的 n8n 试试",
-  "proof.weight": "~151 KB",
+  "proof.weight": "~155 KB",
   "proof.weight.label": "首次加载，对比 ~471 KB",
   "proof.languages": "10",
   "proof.languages.label": "种语言",
