@@ -75,7 +75,7 @@ function applyScheme() {
 // The place card on OpenStreetMap's tiles: a site this size is within their usage policy, credit shown.
 const CARDS = { place: { mapTiles: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', mapAttribution: '© OpenStreetMap contributors' } };
 const YOURS_KEY = 'n8n-chat-site:your-n8n';
-const state = { workflow: 'shop', lang: t.lang in LANGS ? t.lang : 'en', mode: 'embedded', accent: DEFAULT_ACCENT, surface: 'n8n', scheme: 'auto', yours: null };
+const state = { workflow: 'shop', lang: t.lang in LANGS ? t.lang : 'en', mode: 'embedded', maximize: 'off', accent: DEFAULT_ACCENT, surface: 'n8n', scheme: 'auto', yours: null };
 try { state.yours = JSON.parse(localStorage.getItem(YOURS_KEY) ?? 'null'); } catch { /* private mode */ }
 
 const host = document.getElementById('demo-chat');
@@ -83,6 +83,11 @@ const note = document.getElementById('floating-note');
 const workflowTabs = [...document.querySelectorAll('#workflow-tabs [data-workflow]')];
 const modeTabs = [...document.querySelectorAll('#mode-tabs [data-mode]')];
 const schemeTabs = [...document.querySelectorAll('#scheme-tabs [data-scheme]')];
+// Maximize, offered with the floating button only: in the page there is nothing to enlarge.
+const maximizeTabs = [...document.querySelectorAll('#maximize-tabs [data-maximize]')];
+const maximizeRow = [document.getElementById('maximize-label'), document.getElementById('maximize-row')];
+/** `maximizable` as the code writes it, or nothing. */
+const maximizable = () => (state.mode === 'window' && state.maximize !== 'off' ? (state.maximize === 'panel' ? 'panel' : true) : undefined);
 let chat;
 
 function selectTab(tabs, on) {
@@ -97,6 +102,7 @@ function mount({ greet = false } = {}) {
     const floating = state.mode === 'window';
     host.hidden = floating;
     note.hidden = !floating;
+    for (const part of maximizeRow) part.hidden = !floating;
     const yours = state.workflow === 'yours' && state.yours;
     const own = state.lang === t.lang && !yours;
     const wf = state.workflow === 'booking' ? 'booking' : 'shop';
@@ -105,6 +111,7 @@ function mount({ greet = false } = {}) {
         cards: CARDS,
         mode: state.mode,
         ...(floating ? {} : { target: host }),
+        ...(maximizable() ? { maximizable: maximizable() } : {}),
         defaultLanguage: state.lang,
         loadPreviousSession: Boolean(yours),
         colorScheme: state.scheme,
@@ -146,6 +153,7 @@ function arrows(tabs, choose) {
 arrows(workflowTabs, (tab) => showWorkflow(tab.dataset.workflow));
 arrows(modeTabs, (tab) => { state.mode = tab.dataset.mode; selectTab(modeTabs, tab); mount(); });
 arrows(schemeTabs, (tab) => { state.scheme = tab.dataset.scheme; selectTab(schemeTabs, tab); applyScheme(); renderSettings(); });
+arrows(maximizeTabs, (tab) => { state.maximize = tab.dataset.maximize; selectTab(maximizeTabs, tab); mount(); });
 for (const link of document.querySelectorAll('[data-open]')) {
     link.addEventListener('click', () => showWorkflow(link.dataset.open));
 }
@@ -187,6 +195,7 @@ function settingsSource() {
     const lines = ['createChat({', `  webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',`, `  colorScheme: '${state.scheme}',`];
     if (state.lang !== 'en') lines.push(`  defaultLanguage: '${state.lang}',`);
     if (state.mode === 'embedded') lines.push(`  mode: 'embedded',`, `  target: '#support-chat',`);
+    if (maximizable()) lines.push(`  maximizable: ${maximizable() === 'panel' ? "'panel'" : 'true'},`);
     lines.push('});');
     const vars = colourVars();
     const css = vars.length

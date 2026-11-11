@@ -47,6 +47,12 @@
             <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-mode="embedded">{{demo.embedded}}</button>
             <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-mode="window">{{demo.floating}}</button>
           </div></div>
+        <span class="config-label" id="maximize-label" hidden>{{demo.maximize}}</span>
+        <div id="maximize-row" hidden><div class="aparte-tabs aparte-tabs--segmented" role="tablist" aria-label="{{demo.maximize}}" id="maximize-tabs">
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="true" tabindex="0" data-maximize="off">{{demo.maximize.off}}</button>
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-maximize="window">{{demo.maximize.window}}</button>
+            <button class="aparte-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-maximize="panel">{{demo.maximize.panel}}</button>
+          </div></div>
         <div class="config-foot"><button type="button" class="aparte-btn aparte-btn--solid aparte-btn--primary aparte-btn--sm" id="show-config">{{demo.config}}</button></div>
       </div>
       <dialog class="config-dialog" id="config-dialog" aria-labelledby="config-dialog-title">
