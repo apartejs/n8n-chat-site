@@ -125,7 +125,7 @@
   "why.extend": "Свои карточки и плагины",
   "why.license": "Лицензия",
   "install.title": "Установка",
-  "install.sub": "Если вы переходите с @n8n/chat: замените два URL. Всё остальное переносится.",
+  "install.sub": "Если вы переходите с @n8n/chat: удалите строку со стилями и замените URL в import. Всё остальное переносится.",
   "install.npm": "Или из npm: <code>npm install @aparte/n8n-chat</code>. Все опции описаны в <a href=\"https://github.com/apartejs/n8n-chat#readme\">README</a>.",
   "foot.made": "Сделано с <a href=\"https://apartejs.dev\">aparté</a>, библиотекой чата с открытым кодом: чат, карточки и эта страница.",
   "foot.legal": "Не связано с n8n GmbH. n8n — их товарный знак.",

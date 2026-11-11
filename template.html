@@ -301,9 +301,8 @@ createChat({
     <div class="wrap narrow">
       <h2>{{install.title}}</h2>
       <p class="sub">{{install.sub}}</p>
-      <pre class="code" data-lang="html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@{{widget}}/dist/style.css"&gt;
-&lt;script type="module"&gt;
-  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@{{widget}}/dist/cdn/n8n-chat.js';
+      <pre class="code" data-lang="html">&lt;script type="module"&gt;
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@1/dist/cdn/latest.js';
   createChat({
     webhookUrl: 'https://your-n8n.example.com/webhook/…/chat',
     metadata: { page: location.href },

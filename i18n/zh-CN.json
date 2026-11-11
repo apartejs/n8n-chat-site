@@ -125,7 +125,7 @@
   "why.extend": "你自己的卡片和插件",
   "why.license": "许可证",
   "install.title": "安装",
-  "install.sub": "从 @n8n/chat 迁移：只需改两个 URL，其余全部沿用。",
+  "install.sub": "从 @n8n/chat 迁移：删掉样式表那一行，再改掉 import 的 URL，其余全部沿用。",
   "install.npm": "也可通过 npm 安装：<code>npm install @aparte/n8n-chat</code>。所有选项都在 <a href=\"https://github.com/apartejs/n8n-chat#readme\">README</a> 中。",
   "foot.made": "由开源聊天库 <a href=\"https://apartejs.dev\">aparté</a> 打造：聊天、卡片和这个页面。",
   "foot.legal": "与 n8n GmbH 无关。n8n 是其商标。",

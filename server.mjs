@@ -25,13 +25,35 @@ import { WORKFLOWS } from './demo/workflows.mjs';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const root = join(here, 'public');
-/** The widget the page loads, pinned: an `@0` range is cached by browsers for days. */
-const WIDGET = '1.0.1';
+/**
+ * The widget the site's own pages load: one exact version, because the page links its stylesheet in
+ * the head (its own parts wear aparté's recipes before any script runs) and a range would mix files
+ * of two versions. It follows the version `@1/dist/cdn/latest.js` names, read every hour, without a
+ * redeploy: the widget's release job refreshes that file only once the exact version answers on
+ * jsDelivr, so the site never points at files jsDelivr lacks. This one is where it starts, and the
+ * one kept when jsDelivr cannot be read.
+ */
+let widget = '1.0.2';
+const WIDGET_MARK = '%WIDGET%';
+async function followWidget() {
+    try {
+        const res = await fetch('https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@1/dist/cdn/latest.js', { signal: AbortSignal.timeout(10_000) });
+        const named = res.ok && (await res.text()).match(/@aparte\/n8n-chat@(1\.\d+\.\d+)\/dist\/cdn\/n8n-chat\.js/);
+        if (named && named[1] !== widget) {
+            console.log(`[site] widget ${widget} → ${named[1]}`);
+            widget = named[1];
+        }
+    } catch { /* jsDelivr unreachable: keep the version we have */ }
+}
+if (!process.env.WIDGET_SRC) {
+    followWidget();
+    setInterval(followWidget, 3_600_000).unref();
+}
 /**
  * Where the widget comes from: jsDelivr, or — to try a build before it is published — a folder
  * this server serves (`WIDGET_SRC=/_widget node server.mjs`, with dist/cdn and style.css in it).
  */
-const WIDGET_BASE = process.env.WIDGET_SRC ?? `https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@${WIDGET}/dist`;
+const WIDGET_BASE = process.env.WIDGET_SRC ?? `https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@${WIDGET_MARK}/dist`;
 const WIDGET_CSS = process.env.WIDGET_SRC ? `${WIDGET_BASE}/style.css` : `${WIDGET_BASE}/style.css`;
 const WIDGET_JS = process.env.WIDGET_SRC ? `${WIDGET_BASE}/n8n-chat.js` : `${WIDGET_BASE}/cdn/n8n-chat.js`;
 
@@ -87,7 +109,6 @@ for (const lang of LANGS) {
     const t = { ...dictionaries.en, ...dictionaries[lang] };
     for (const page of PAGES) {
         const fill = {
-            widget: WIDGET,
             'widget.css': WIDGET_CSS,
             'widget.js': WIDGET_JS,
             'page.path': page.path,
@@ -328,7 +349,7 @@ const server = createServer(async (req, res) => {
     if (pages[pagePath]) {
         if (pagePath !== url.pathname) { res.writeHead(301, { location: pagePath }).end(); return; }
         res.writeHead(200, { 'content-type': TYPES['.html'], 'cache-control': 'no-cache', 'content-language': pagePath.split('/')[1] });
-        res.end(req.method === 'HEAD' ? undefined : pages[pagePath]);
+        res.end(req.method === 'HEAD' ? undefined : pages[pagePath].replaceAll(WIDGET_MARK, widget));
         return;
     }
     let path;

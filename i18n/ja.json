@@ -125,7 +125,7 @@
   "why.extend": "オリジナルのカードとプラグイン",
   "why.license": "ライセンス",
   "install.title": "導入",
-  "install.sub": "@n8n/chat からの移行は、2 つの URL を変えるだけです。ほかはそのまま引き継がれます。",
+  "install.sub": "@n8n/chat からの移行は、スタイルシートの行を消して import の URL を変えるだけです。ほかはそのまま引き継がれます。",
   "install.npm": "npm からも導入できます: <code>npm install @aparte/n8n-chat</code>。すべてのオプションは <a href=\"https://github.com/apartejs/n8n-chat#readme\">README</a> にあります。",
   "foot.made": "オープンソースのチャットライブラリ <a href=\"https://apartejs.dev\">aparté</a> で作りました。チャットも、カードも、このページも。",
   "foot.legal": "n8n GmbH とは関係ありません。n8n は同社の商標です。",

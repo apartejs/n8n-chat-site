@@ -125,7 +125,7 @@
   "why.extend": "Vos cartes et plugins",
   "why.license": "Licence",
   "install.title": "Installer",
-  "install.sub": "Vous venez de @n8n/chat : changez les deux URL. Tout le reste est repris.",
+  "install.sub": "Vous venez de @n8n/chat : supprimez la ligne de la feuille de style et changez l'URL de l'import. Tout le reste est repris.",
   "install.npm": "Ou depuis npm : <code>npm install @aparte/n8n-chat</code>. Toutes les options sont dans le <a href=\"https://github.com/apartejs/n8n-chat#readme\">README</a>.",
   "foot.made": "Fait avec <a href=\"https://apartejs.dev\">aparté</a>, une bibliothèque de chat open source : le chat, les cartes et cette page.",
   "foot.legal": "Sans lien avec n8n GmbH. n8n est leur marque.",

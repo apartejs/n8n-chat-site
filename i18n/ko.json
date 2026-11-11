@@ -125,7 +125,7 @@
   "why.extend": "나만의 카드와 플러그인",
   "why.license": "라이선스",
   "install.title": "설치",
-  "install.sub": "@n8n/chat에서 옮겨 오는 경우: URL 두 개만 바꾸면 됩니다. 나머지는 그대로 이어집니다.",
+  "install.sub": "@n8n/chat에서 옮겨 오는 경우: 스타일시트 줄을 지우고 import URL만 바꾸면 됩니다. 나머지는 그대로 이어집니다.",
   "install.npm": "npm으로도 설치할 수 있습니다: <code>npm install @aparte/n8n-chat</code>. 모든 옵션은 <a href=\"https://github.com/apartejs/n8n-chat#readme\">README</a>에 있습니다.",
   "foot.made": "오픈 소스 채팅 라이브러리 <a href=\"https://apartejs.dev\">aparté</a>로 만들었습니다: 채팅, 카드, 그리고 이 페이지.",
   "foot.legal": "n8n GmbH와 관련이 없습니다. n8n은 해당 회사의 상표입니다.",
