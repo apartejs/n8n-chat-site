@@ -29,21 +29,32 @@ const root = join(here, 'public');
  * The widget the site's own pages load: one exact version, because the page links its stylesheet in
  * the head (its own parts wear aparté's recipes before any script runs) and a range would mix files
  * of two versions. It follows the version `@1/dist/cdn/latest.js` names, read every hour, without a
- * redeploy: the widget's release job refreshes that file only once the exact version answers on
- * jsDelivr, so the site never points at files jsDelivr lacks. This one is where it starts, and the
- * one kept when jsDelivr cannot be read.
+ * redeploy, and only forward: one jsDelivr edge can still serve an older `@1` for hours after a
+ * release. It moves only once the exact version's files answer, because jsDelivr resolves `@1` from
+ * npm while it may still hold a 404 for the exact files. This one is where it starts, and the one
+ * kept when jsDelivr cannot be read.
  */
-let widget = '1.0.2';
+let widget = '1.1.0';
 const WIDGET_MARK = '%WIDGET%';
+const JSDELIVR = 'https://cdn.jsdelivr.net/npm/@aparte/n8n-chat';
+const newer = (a, b) => {
+    const [x, y] = [a, b].map((v) => v.split('.').map(Number));
+    for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i];
+    return false;
+};
 async function followWidget() {
     try {
-        const res = await fetch('https://cdn.jsdelivr.net/npm/@aparte/n8n-chat@1/dist/cdn/latest.js', { signal: AbortSignal.timeout(10_000) });
+        const res = await fetch(`${JSDELIVR}@1/dist/cdn/latest.js`, { signal: AbortSignal.timeout(10_000) });
         const named = res.ok && (await res.text()).match(/@aparte\/n8n-chat@(1\.\d+\.\d+)\/dist\/cdn\/n8n-chat\.js/);
-        if (named && named[1] !== widget) {
-            console.log(`[site] widget ${widget} → ${named[1]}`);
-            widget = named[1];
-        }
-    } catch { /* jsDelivr unreachable: keep the version we have */ }
+        if (!named || !newer(named[1], widget)) return;
+        const files = ['cdn/n8n-chat.js', 'style.css'].map((file) => `${JSDELIVR}@${named[1]}/dist/${file}`);
+        const answers = await Promise.all(files.map((url) => fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(10_000) })));
+        if (answers.some((answer) => !answer.ok)) return console.warn(`[site] widget ${named[1]} named, its files not served yet`);
+        console.log(`[site] widget ${widget} → ${named[1]}`);
+        widget = named[1];
+    } catch (error) {
+        console.warn(`[site] widget: jsDelivr not read (${error.message}), keeping ${widget}`);
+    }
 }
 if (!process.env.WIDGET_SRC) {
     followWidget();
