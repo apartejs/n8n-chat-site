@@ -1,4 +1,4 @@
-/* The site's own identity — paper, ink and the widget's own teal — worn by aparté's components
+/* The site's own identity — paper, ink and n8n's pink — worn by aparté's components
    (buttons, tabs, cards, tags, fields) through their tokens. What is here is the identity and
    the layout; the controls' look is aparté's. */
 
@@ -9,8 +9,9 @@
   --ink: #121521;
   --ink-2: #4f5466;
   --line: #dedad0;
-  --teal: #178272;
-  --teal-ink: #0f5e52;
+  /* n8n's pink (#EA4B71, its logo's) for areas; deeper for text, which needs 4.5:1 on the paper (5.3). */
+  --pink: #ea4b71;
+  --pink-ink: #c02653;
   --navy: #101330;
   --code-bg: #fffdf9;
   --display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
@@ -27,8 +28,8 @@
     --ink: #eef0f6;
     --ink-2: #a3a8bb;
     --line: #262a38;
-    --teal: #2bb39e;
-    --teal-ink: #5fd0bd;
+    --pink: #ea4b71;
+    --pink-ink: #f5839e;
     --code-bg: #141722;
     color-scheme: dark;
   }
@@ -36,9 +37,9 @@
 
 /* aparté's recipes in the site's colours (not the chat's: it keeps its own n8n look). */
 .site {
-  --aparte-primary: var(--teal);
-  --aparte-primary-hover: var(--teal-ink);
-  --aparte-primary-ink: var(--teal-ink);
+  --aparte-primary: var(--pink);
+  --aparte-primary-hover: var(--pink-ink);
+  --aparte-primary-ink: var(--pink-ink);
   --aparte-text: var(--ink);
   --aparte-text-muted: var(--ink-2);
   --aparte-border: var(--line);
@@ -51,7 +52,7 @@
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--body); }
-a { color: var(--teal-ink); }
+a { color: var(--pink-ink); }
 code { font-family: var(--mono); font-size: 0.9em; }
 h1, h2, h3 { font-family: var(--display); letter-spacing: -0.02em; }
 h2 { font-size: clamp(30px, 4vw, 40px); line-height: 1.1; margin: 0 0 14px; }
@@ -68,7 +69,7 @@ h3 { font-size: 24px; margin: 0 0 10px; }
 /* Header */
 .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; padding: 20px 24px; }
 .logo { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font: 700 19px var(--display); letter-spacing: -0.01em; }
-.logo-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--teal); display: grid; place-items: center; }
+.logo-mark { width: 30px; height: 30px; display: block; }
 .logo small { font: 500 13px var(--body); color: var(--ink-2); }
 .top nav { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 15px; }
 .top nav a { color: var(--ink-2); text-decoration: none; }
@@ -78,9 +79,9 @@ select { font: inherit; color: var(--ink); background: var(--card); border: 1px 
 /* Hero */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 470px); gap: 64px; align-items: center; padding-top: 32px; padding-bottom: 80px; scroll-margin-top: 16px; }
 .eyebrow { display: inline-flex; gap: 8px; align-items: center; margin: 0 0 22px; font-size: 14px; color: var(--ink-2); }
-.eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+.eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pink); }
 h1 { font-size: clamp(42px, 6vw, 70px); line-height: 1; letter-spacing: -0.03em; margin: 0 0 24px; }
-h1 span { color: var(--teal); }
+h1 span { color: var(--pink); }
 .lead { font-size: 19px; color: var(--ink-2); max-width: 32em; margin: 0 0 30px; }
 .ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 34px; }
 .proof { display: flex; gap: 26px; flex-wrap: wrap; padding: 18px 0 0; margin: 0; border-top: 1px solid var(--line); }
@@ -89,7 +90,7 @@ h1 span { color: var(--teal); }
 
 .stage { position: relative; display: flex; flex-direction: column; gap: 12px; }
 .stage::before { content: ''; position: absolute; inset: 60px -30px 80px 40px; border-radius: 28px;
-  background: radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--teal) 28%, transparent), transparent 65%); z-index: -1; }
+  background: radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--pink) 28%, transparent), transparent 65%); z-index: -1; }
 .stage > .aparte-tabs { align-self: center; }
 .demo { height: 580px; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 40px 80px -40px rgb(16 19 48 / 0.45); background: var(--paper); }
 .demo[hidden], .floating-note[hidden] { display: none; }
@@ -108,7 +109,7 @@ h1 span { color: var(--teal); }
 .config-dialog .code { margin: 0; overflow-x: auto; }
 .swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--paper); box-shadow: 0 0 0 1px var(--line); cursor: pointer; padding: 0; }
 .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); }
-.swatch:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+.swatch:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
 /* Your own color: the browser's picker, drawn as one more swatch with a rainbow until it is used. */
 .swatch--custom { appearance: none; -webkit-appearance: none; background: conic-gradient(#e11d48, #f59e0b, #16a34a, #0ea5e9, #7c3aed, #e11d48); overflow: hidden; }
 .swatch--custom::-webkit-color-swatch-wrapper { padding: 0; }
@@ -162,7 +163,7 @@ h1 span { color: var(--teal); }
 .check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink-2); }
 .status { min-height: 1.6em; margin: 0; font-size: 14px; }
 .status[data-tone="error"] { color: #c2410c; }
-.status[data-tone="ok"] { color: var(--teal-ink); }
+.status[data-tone="ok"] { color: var(--pink-ink); }
 
 /* Workflows */
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -181,7 +182,7 @@ h1 span { color: var(--teal); }
 .compare { width: 100%; border-collapse: collapse; font-size: 15px; }
 .compare th, .compare td { text-align: start; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .compare thead th { color: var(--ink-2); font-weight: 600; font-size: 13px; }
-.compare thead th:nth-child(3) { color: var(--teal-ink); }
+.compare thead th:nth-child(3) { color: var(--pink-ink); }
 .compare tbody th { font-weight: 600; width: 32%; }
 .compare td:nth-child(2) { color: var(--ink-2); }
 
